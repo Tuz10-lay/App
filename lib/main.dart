@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:looninary/core/theme/app_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:looninary/features/auth/views/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,23 +21,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Looninary',
-      theme: ThemeData(
-        primarySwatch: Colors.pink,
-      ),
-      home: Homepage(),
+      theme: AppTheme.lightTheme,
+      home: LoginScreen(),
     );
   }
 }
 
-class Homepage extends StatelessWidget {
-  const Homepage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: const Text("Hi there!"),
-      )
-    );
-  }
-}
