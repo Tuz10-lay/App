@@ -1,0 +1,4 @@
+/home/nguyenhieu/my_home/projects/github/falwyn/looninary/.devenv.flake.nix
+/home/nguyenhieu/my_home/projects/github/falwyn/looninary/devenv.lock
+/home/nguyenhieu/my_home/projects/github/falwyn/looninary/devenv.nix
+/home/nguyenhieu/my_home/projects/github/falwyn/looninary/devenv.yaml
