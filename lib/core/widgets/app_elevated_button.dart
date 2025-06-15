@@ -18,13 +18,10 @@ class AppElevatedButton extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         foregroundColor: AppColors.base,
-        backgroundColor: color ?? AppColors.rosewater,
+        backgroundColor: color ?? AppColors.lavender,
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        textStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       onPressed: onPressed,
       child: Text(text),
