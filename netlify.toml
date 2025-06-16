@@ -11,11 +11,13 @@
   # 3. Run `flutter doctor` to verify the installation.
   # 4. Enable the web build tools.
   # 5. Finally, build your project.
+
+  # for the command thingy, at first
+  # git clone https://github.com/flutter/flutter.git --depth 1 --branch $FLUTTER_VERSION &&
+  # export PATH="$PATH:`pwd`/flutter/bin" &&
+  # flutter doctor &&
+  # flutter config --enable-web &&
   command = """
-  git clone https://github.com/flutter/flutter.git --depth 1 --branch $FLUTTER_VERSION &&
-  export PATH="$PATH:`pwd`/flutter/bin" &&
-  flutter doctor &&
-  flutter config --enable-web &&
   flutter build web --release
   """
 
