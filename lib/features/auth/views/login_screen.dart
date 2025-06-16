@@ -62,7 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.visibility),
+                    icon: _isObscure 
+                      ? Icon(Icons.visibility_off)
+                      : Icon(Icons.visibility),
                     onPressed: () {
                       _togglePasswordVisibility();
                     },

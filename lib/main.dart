@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:looninary/core/theme/app_theme.dart';
+import 'package:looninary/features/auth/views/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:looninary/features/auth/views/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Looninary',
       theme: AppTheme.lightTheme,
-      home: LoginScreen(),
+      home: const AuthGate(),
     );
   }
 }

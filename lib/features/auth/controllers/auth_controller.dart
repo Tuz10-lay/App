@@ -108,4 +108,18 @@ class AuthController {
       showAppSnackBar(context, "An unexpected error occured", SnackBarType.failure);
     }
   }
+
+  Future<void> signOut(BuildContext context) async {
+    try {
+      await _authService.signOut();
+    } on AuthException catch (e) {
+      logger.e("Sign out failed: $e");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Sign out failed: ${e.message}", SnackBarType.failure);
+    } catch (e) {
+      logger.e("Unexpected error: $e");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Unexpected error", SnackBarType.failure);
+    }
+  }
 }
