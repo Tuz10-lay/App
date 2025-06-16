@@ -1,18 +1,30 @@
-# netlify.toml
+# The definitive Netlify configuration for a Flutter Web project.
 
+# This section defines the main build settings.
 [build]
-  command = "flutter build web --release"
-
+  # The publish directory remains the same.
   publish = "build/web"
+  
+  # This command is now a multi-step script. It will:
+  # 1. Clone the specific version of the Flutter SDK from GitHub.
+  # 2. Add the Flutter tool to the system's PATH.
+  # 3. Run `flutter doctor` to verify the installation.
+  # 4. Enable the web build tools.
+  # 5. Finally, build your project.
+  command = """
+  git clone https://github.com/flutter/flutter.git --depth 1 --branch $FLUTTER_VERSION &&
+  export PATH="$PATH:`pwd`/flutter/bin" &&
+  flutter doctor &&
+  flutter config --enable-web &&
+  flutter build web --release
+  """
 
+# This section defines environment variables.
 [build.environment]
   FLUTTER_VERSION = "3.29.3"
 
-# This section defines the functions settings, which we aren't using yet,
-# but it's good practice to have.
-[functions]
-  directory = "functions"
-
+# This is a special rule for Single Page Applications (SPAs) like Flutter.
+# It ensures that refreshing the page on any sub-route (e.g., /home) works correctly.
 [[redirects]]
   from = "/*"
   to = "/index.html"
