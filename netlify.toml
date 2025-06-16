@@ -2,23 +2,33 @@
 
 # This section defines the main build settings.
 [build]
-  # The publish directory remains the same.
+ # The publish directory remains the same.
   publish = "build/web"
-  
-  # This command is now a multi-step script. It will:
-  # 1. Clone the specific version of the Flutter SDK from GitHub.
-  # 2. Add the Flutter tool to the system's PATH.
-  # 3. Run `flutter doctor` to verify the installation.
-  # 4. Enable the web build tools.
-  # 5. Finally, build your project.
 
-  # for the command thingy, at first
-  # git clone https://github.com/flutter/flutter.git --depth 1 --branch $FLUTTER_VERSION &&
-  # export PATH="$PATH:`pwd`/flutter/bin" &&
-  # flutter doctor &&
-  # flutter config --enable-web &&
+  # This corrected multi-line command is now robust.
+  # The """ allows us to write a script across multiple lines.
   command = """
-  flutter build web --release
+    # 1. Check if the 'flutter' directory exists from a previous cache.
+    if [ -d "flutter" ] ; then
+      echo "Flutter SDK found in cache."
+    else
+      # 2. If it doesn't exist, clone the specific version of the Flutter SDK.
+      echo "Cloning Flutter SDK..."
+      git clone https://github.com/flutter/flutter.git --depth 1 --branch $FLUTTER_VERSION
+    fi
+
+    # 3. Add the Flutter tool to the system's PATH for this build.
+    export PATH="$PATH:`pwd`/flutter/bin"
+
+    # 4. Run `flutter doctor` to verify the installation and download any dependencies.
+    flutter doctor
+
+    # 5. Enable the web build tools.
+    flutter config --enable-web
+
+    # 6. Finally, build your project for release.
+    echo "Building Flutter web project..."
+    flutter build web --release
   """
 
 # This section defines environment variables.
