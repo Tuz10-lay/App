@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:looninary/core/widgets/social_icon_button.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:looninary/core/widgets/app_elevated_button.dart';
+import 'package:looninary/core/theme/app_colors.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -90,6 +93,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordController.text,
                       );
                     },
+                  ),
+                  const SizedBox(height: 20),
+                  AppElevatedButton(
+                    text: "Continue as Guest",
+                    onPressed: () {
+                      _authController.signInAnonymously(context);
+                    },
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      SocialIconButton(
+                        iconPath: 'assets/icons/google_logo.png',
+                        onTap: () {
+                          _authController.signInWithOAuth(
+                            context,
+                            OAuthProvider.google,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      SocialIconButton(
+                        iconPath: 'assets/icons/github_logo.png',
+                        onTap: () {
+                          _authController.signInWithOAuth(
+                            context,
+                            OAuthProvider.github,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

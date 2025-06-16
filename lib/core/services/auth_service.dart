@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   // GoTrueClient: a client provided by supabase to hanldes all user authentication tasks
@@ -19,6 +20,28 @@ class AuthService {
       password: password,
     );
     return response.user;
+  }
+
+  // Sign in anonymously
+  Future<User?> signInAnonymously() async {
+    final response = await _auth.signInAnonymously();
+    return response.user;
+  }
+
+  // Promote an anonymous user to a pernament user
+  Future<User?> linkAnonymousUer(String email, String password) async {
+    final response = await _auth.updateUser(
+      UserAttributes(email: email, password: password),
+    );
+    return response.user;
+  }
+
+  // Generic Social Login (OAuth)
+  Future<void> signInWithOAuth(OAuthProvider provider) async {
+    await _auth.signInWithOAuth(
+      provider,
+      redirectTo: kIsWeb ? null : 'io.supabase.looninary://callback',
+    );
   }
 
   // Log out the current user

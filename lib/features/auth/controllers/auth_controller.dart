@@ -63,10 +63,49 @@ class AuthController {
       }
     } on AuthException catch (e) {
       logger.e("Log in failed for user with email: $email, error: ${e.message}");
+      if (!context.mounted) return;
       showAppSnackBar(context, e.message, SnackBarType.failure);
     } catch (e) {
       logger.e("Unexpected error during login: $e");
+      if (!context.mounted) return;
       showAppSnackBar(context, "Log in failed, please try again", SnackBarType.failure);
+    }
+  }
+
+  Future<void> signInAnonymously(BuildContext context) async {
+    logger.i("Attemping sign in anonymously");
+
+    try {
+      final user = await _authService.signInAnonymously();
+
+      if (!context.mounted) return;
+
+      if (user != null) {
+        logger.i("Anonymous sign in successful for user with id: ${user.id}");
+        showAppSnackBar(context, "Anonymous sign in successful", SnackBarType.success);
+      }
+    } on AuthException catch (e) {
+      logger.e("Anonymous sign in failed: ${e.message}");
+      if (!context.mounted) return;
+      showAppSnackBar(context, e.message, SnackBarType.failure);
+    } catch (e) {
+      logger.e("Unexpected error during anonymous sign in: $e");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Unexpected error", SnackBarType.failure);
+    }
+  }
+
+  Future<void> signInWithOAuth(BuildContext context, OAuthProvider provider) async {
+    try {
+      await _authService.signInWithOAuth(provider);
+    } on AuthException catch (e) {
+      logger.e("OAuth failed: ${e.message}");
+      if (!context.mounted) return;
+      showAppSnackBar(context, e.message, SnackBarType.failure);
+    } catch (e) {
+      logger.e("Unexpected error: $e");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "An unexpected error occured", SnackBarType.failure);
     }
   }
 }
