@@ -54,7 +54,18 @@
     pkgs.git
     pkgs.vscodium
     pkgs.libsecret
+    pkgs.google-chrome
+    pkgs.chromium
+    pkgs.glibc
+    pkgs.xdg-utils 
   ];
+
+  env = {
+    # CHROME_EXECUTABLE = "${pkgs.google-chrome}/bin/google-chrome"; # failed
+    # CHROME_EXECUTABLE = "${pkgs.google-chrome}/bin/chromium"; # failed
+    CHROME_EXECUTABLE = lib.getExe pkgs.google-chrome; # this solve the chrome executable problem
+    
+  };
 
   # https://devenv.sh/languages/
   # languages.rust.enable = true;

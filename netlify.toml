@@ -1,0 +1,19 @@
+# netlify.toml
+
+[build]
+  command = "flutter build web --release"
+
+  publish = "build/web"
+
+[build.environment]
+  FLUTTER_VERSION = "3.29.3"
+
+# This section defines the functions settings, which we aren't using yet,
+# but it's good practice to have.
+[functions]
+  directory = "functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
