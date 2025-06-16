@@ -23,7 +23,7 @@ class AuthGate extends StatelessWidget {
         // If the user has a session, they are logged in
         if (authState != null && authState.session != null) {
           // Show the HomePage if logged in
-          return Homepage();
+          return HomePage();
         } else {
           // Show the LoginScreen if not logged in
           return const LoginScreen();

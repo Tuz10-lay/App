@@ -40,7 +40,7 @@ class AuthService {
   Future<void> signInWithOAuth(OAuthProvider provider) async {
     await _auth.signInWithOAuth(
       provider,
-      redirectTo: kIsWeb ? null : 'io.supabase.looninary://callback',
+      redirectTo: kIsWeb ? null : 'https://looninary.netlify.app/',
     );
   }
 
