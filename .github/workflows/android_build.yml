@@ -33,8 +33,9 @@ jobs:
       # 5. Build the APK
       - run: flutter build apk --release
 
-      # 6. Upload the built APK as a downloadable "artifact"
-      - uses: actions/upload-artifact@v4
+      # 6. Upload the built APK as a release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          body: "Looninary app"
+          files: build/app/outputs/flutter-apk/app-release.apk
