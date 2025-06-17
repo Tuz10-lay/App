@@ -12,6 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest # Use a standard Ubuntu runner
 
+    # grants GITHUB_TOKEN the neccessary permissions to create a release
+    permissions:
+      contents: write
+
     steps:
       # 1. Checks out your repository's code
       - uses: actions/checkout@v4
