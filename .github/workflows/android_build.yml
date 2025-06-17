@@ -37,5 +37,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "build-0.0.${{ github.run_number }}"
+          name: "Looninary Build ${{ github.run_number }}"
           body: "Looninary app"
           files: build/app/outputs/flutter-apk/app-release.apk
