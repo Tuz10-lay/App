@@ -1,0 +1,40 @@
+# .github/workflows/android_build.yml
+name: Build Flutter Android APK
+
+# This workflow runs on every push to the 'main' branch
+on:
+  push:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Use a standard Ubuntu runner
+
+    steps:
+      # 1. Checks out your repository's code
+      - uses: actions/checkout@v4
+
+      # 2. Sets up the correct Java version for Android builds
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17' # A common, stable version for Android
+
+      # 3. Sets up Flutter in the virtual environment
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # or specify a version with 'flutter-version'
+
+      # 4. Get Flutter dependencies
+      - run: flutter pub get
+
+      # 5. Build the APK
+      - run: flutter build apk --release
+
+      # 6. Upload the built APK as a downloadable "artifact"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

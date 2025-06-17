@@ -5,6 +5,7 @@
   # Android development
   android = {
     enable = true;
+    # jdk.package = pkgs.jdk21;
     flutter.enable = true;
     platforms.version = [ "32" "33" "34" ];
     systemImageTypes = [ "google_apis_playstore"];
@@ -36,18 +37,16 @@
       "intel-android-sysimage-license"
       "mips-android-sysimage-license"
     ];
-    android-studio = {
-      enable = true;
-      package = pkgs.android-studio;
-    };
+    # android-studio = {
+    #   enable = true;
+    #   package = pkgs.android-studio;
+    # };
   };
 
 
 
 
 
-  # https://devenv.sh/basics/
-  env.GREET = "devenv";
 
   # https://devenv.sh/packages/
   packages = [
@@ -58,12 +57,16 @@
     pkgs.chromium
     pkgs.glibc
     pkgs.xdg-utils 
+    pkgs.bash
+    # pkgs.jdk21
   ];
 
   env = {
     # CHROME_EXECUTABLE = "${pkgs.google-chrome}/bin/google-chrome"; # failed
     # CHROME_EXECUTABLE = "${pkgs.google-chrome}/bin/chromium"; # failed
+    GREET = "devenv";
     CHROME_EXECUTABLE = lib.getExe pkgs.google-chrome; # this solve the chrome executable problem
+    # JAVA_HOME = lib.mkForce "${pkgs.jdk21}/lib/openjdk";
     
   };
 
@@ -86,6 +89,7 @@
     git --version
     flutter --version
     dart --version
+    java --version
   '';
 
   # https://devenv.sh/tasks/
