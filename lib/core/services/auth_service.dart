@@ -49,6 +49,16 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Update user email
+  Future<void> updateUserEmail(String newEmail) async {
+    await _auth.updateUser(UserAttributes(email: newEmail));
+  }
+
+  // Update user password
+  Future<void> updateUserPassword(String newPassword) async {
+    await _auth.updateUser(UserAttributes(password: newPassword));
+  }
+
   // Get the current user
   User? get currentUser => _auth.currentUser;
 }

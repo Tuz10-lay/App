@@ -98,6 +98,9 @@ class AuthController {
   Future<void> signInWithOAuth(BuildContext context, OAuthProvider provider) async {
     try {
       await _authService.signInWithOAuth(provider);
+      if (!context.mounted) return;
+
+      showAppSnackBar(context, "Sign in with OAuth successfully", SnackBarType.success);
     } on AuthException catch (e) {
       logger.e("OAuth failed: ${e.message}");
       if (!context.mounted) return;
@@ -120,6 +123,23 @@ class AuthController {
       logger.e("Unexpected error: $e");
       if (!context.mounted) return;
       showAppSnackBar(context, "Unexpected error", SnackBarType.failure);
+    }
+  }
+
+  Future<void> updateUserEmail(BuildContext context, String newEmail) async {
+    try {
+      await _authService.updateUserEmail(newEmail);
+      if (!context.mounted) return;
+  
+      showAppSnackBar(context, "Emailed updated successfully", SnackBarType.success);
+    } on AuthException catch (e) {
+      logger.e("Email update failed: ${e.message}");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Update email failed: ${e.message}", SnackBarType.failure);
+    } catch (e) {
+      logger.e("Unexpeced error: $e");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Update email failed due to unexpected error", SnackBarType.failure);
     }
   }
 }
