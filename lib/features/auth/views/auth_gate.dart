@@ -1,11 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:looninary/core/services/auth_service.dart';
 import 'package:looninary/features/auth/views/login_screen.dart';
 import 'package:looninary/features/home/views/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _redirect();
+  }
+
+  Future<void> _redirect() async {
+    if (!kIsWeb) {
+      await _authService.restoreSession();
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     // Return a StreamBuilder that listens to the auth state changes

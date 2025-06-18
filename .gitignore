@@ -43,3 +43,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Android release
+
+.android/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+
