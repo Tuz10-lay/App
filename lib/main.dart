@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Looninary',
       theme: AppTheme.lightTheme,
       home: const AuthGate(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

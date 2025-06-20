@@ -33,5 +33,7 @@ class AppColors {
   static const Color warning = Color(0xFFFBBF24);
   static const Color error = Color(0xFFF87171);
 
+  
+  static const Color midnight = Color(0xFF181C2F); // Màu nền xanh tím đậm giống ảnh demo
 
 }
