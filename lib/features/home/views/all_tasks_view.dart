@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:looninary/core/theme/app_colors.dart';
 import 'package:looninary/features/home/controllers/task_controller.dart';
 import 'package:looninary/features/home/views/task_edit_dialog.dart';
 import 'package:provider/provider.dart';
@@ -55,29 +56,35 @@ class _AllTasksViewState extends State<AllTasksView> {
             if (controller.tasks.isEmpty) {
               return const Center(child: Text('No tasks yet. Add one!'));
             }
-            
+
             return ListView.builder(
               itemCount: controller.tasks.length,
               itemBuilder: (context, index) {
                 final task = controller.tasks[index];
                 return Card(
                   child: ListTile(
-                    title: Text(task.title),
-                    subtitle: 
-                      (task.content != null && task.content!.isNotEmpty)
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                    title: Text(
+                      task.title,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle:
+                        (task.content != null && task.content!.isNotEmpty)
+                            ? Padding(
+                              padding: const EdgeInsets.only(
+                                top: 8.0,
+                                bottom: 8.0,
+                              ),
                               child: Html(
                                 data: task.content,
                                 style: {
                                   "body": Style(
                                     fontSize: FontSize(14.0),
-                                    color: Colors.black,
+                                    color: Colors.white,
                                   ),
                                 },
                               ),
                             )
-                          : null,
+                            : null,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -90,18 +97,29 @@ class _AllTasksViewState extends State<AllTasksView> {
                           onPressed: () {
                             // Show a confirmation dialog before deleting
                             showDialog(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                      title: const Text('Are you sure?'),
-                                      content: Text('Do you want to delete "${task.title}"?'),
-                                      actions: [
-                                        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('No')),
-                                        TextButton(onPressed: () {
-                                            _taskController.deleteTask(task.id);
-                                            Navigator.of(ctx).pop();
-                                        }, child: const Text('Yes')),
-                                      ],
-                                    ));
+                              context: context,
+                              builder:
+                                  (ctx) => AlertDialog(
+                                    title: const Text('Are you sure?'),
+                                    content: Text(
+                                      'Do you want to delete "${task.title}"?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.of(ctx).pop(),
+                                        child: const Text('No'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          _taskController.deleteTask(task.id);
+                                          Navigator.of(ctx).pop();
+                                        },
+                                        child: const Text('Yes'),
+                                      ),
+                                    ],
+                                  ),
+                            );
                           },
                         ),
                       ],
@@ -116,6 +134,7 @@ class _AllTasksViewState extends State<AllTasksView> {
           onPressed: () => _showEditDialog(),
           child: const Icon(Icons.add),
           tooltip: 'Add Task',
+          backgroundColor: AppColors.lavender,
         ),
       ),
     );

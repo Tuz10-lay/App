@@ -28,6 +28,22 @@ class AppColors {
 
   static const Color textLight = Color(0xFF6B7280);
 
+  // Dark Pallette (Macchiato)
+  static const Color mRosewater = Color(0xFFF4DBD6);
+  static const Color mFlamingo = Color(0xFFF0C6C6);
+  static const Color mPink = Color(0xFFF5BDE6);
+  static const Color mMauve = Color(0xFFC6A0F6);
+  static const Color mRed = Color(0xFFED8796);
+  static const Color mMaroon = Color(0xFFEE99A0);
+  static const Color mPeach = Color(0xFFF5A97F);
+  static const Color mYellow = Color(0xFFEED49F);
+  static const Color mGreen = Color(0xFFA6DA95);
+  static const Color mTeal = Color(0xFF8BD5CA);
+  static const Color mSky = Color(0xFF91D7E3);
+  static const Color mText = Color(0xFFCAD3F5);
+
+  
+
   // Semantic Colors
   static const Color success = Color(0xFF6EE7B7);
   static const Color warning = Color(0xFFFBBF24);

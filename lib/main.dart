@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Looninary',
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.darkTheme,
       home: const AuthGate(),
       debugShowCheckedModeBanner: false,
     );
