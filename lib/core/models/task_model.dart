@@ -12,9 +12,42 @@ extension EnumByNameIgnoreCase<T extends Enum> on Iterable<T> {
 
 enum TaskStatus { notStarted, inProgress, completed, blocked }
 
+extension TaskStatusExtension on TaskStatus {
+  String toDbValue() {
+    switch (this) {
+      case TaskStatus.notStarted:
+        return 'Not Started'; // Or whatever your DB value is
+      case TaskStatus.inProgress:
+        return 'In Progress';
+      case TaskStatus.completed:
+        return 'Completed';
+      case TaskStatus.blocked:
+        return 'Blocked';
+    }
+  }
+}
+
 enum TaskPriority { low, medium, high, urgent }
 
+extension TaskPriorityExtension on TaskPriority {
+  /// Converts enum to a database-friendly string.
+  String toDbValue() {
+    switch (this) {
+      case TaskPriority.low:
+        return 'Low';
+      case TaskPriority.medium:
+        return 'Medium';
+      case TaskPriority.high:
+        return 'High';
+      case TaskPriority.urgent:
+        return 'Urgent';
+    }
+  }
+}
+
 enum TaskType { normal, pomodoro }
+
+enum ItemColor { maroon, peach, yellow, green, teal }
 
 class Task {
   final String id;
@@ -28,7 +61,7 @@ class Task {
   TaskStatus taskStatus;
   TaskPriority taskPriority;
 
-  String color;
+  ItemColor color;
 
   DateTime? startDate;
   DateTime? dueDate;
@@ -54,7 +87,7 @@ class Task {
     this.taskType = TaskType.normal,
     this.taskStatus = TaskStatus.notStarted,
     this.taskPriority = TaskPriority.medium,
-    this.color = '#FFC0CB',
+    this.color = ItemColor.teal,
     this.startDate,
     this.dueDate,
     this.pomodoroDurationMinutes,
@@ -65,14 +98,14 @@ class Task {
     this.progress = 0.0,
   });
 
-factory Task.fromJson(Map<String, dynamic> json) {
+  factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
       id: json['id'],
       userId: json['user_id'],
       createdAt: DateTime.parse(json['created_at']),
       title: json['title'],
       content: json['content'],
-      
+
       taskType: TaskType.values.byNameIgnoreCase(
         json['task_type'] ?? 'normal',
         orElse: TaskType.normal,
@@ -85,10 +118,17 @@ factory Task.fromJson(Map<String, dynamic> json) {
         json['priority'] ?? 'medium',
         orElse: TaskPriority.medium,
       ),
-      
-      color: json['color'] ?? '#FFC0CB',
-      startDate: json['start_date'] != null ? DateTime.parse(json['start_date']) : null,
-      dueDate: json['due_date'] != null ? DateTime.parse(json['due_date']) : null,
+      color: ItemColor.values.byNameIgnoreCase(
+        json['color'] ?? 'teal',
+        orElse: ItemColor.teal,
+      ),
+
+      startDate:
+          json['start_date'] != null
+              ? DateTime.parse(json['start_date'])
+              : null,
+      dueDate:
+          json['due_date'] != null ? DateTime.parse(json['due_date']) : null,
       pomodoroDurationMinutes: json['pomodoro_duration_minutes'],
       pomodoroCyclesCompleted: json['pomodoro_cycles_completed'],
       parentId: json['parent_id'],
@@ -102,7 +142,7 @@ factory Task.fromJson(Map<String, dynamic> json) {
       'task_type': taskType.name,
       'task_status': taskStatus.name,
       'task_priority': taskPriority.name,
-      'color': color,
+      'color': color.name,
       'start_date': startDate?.toIso8601String(),
       'due_date': dueDate?.toIso8601String(),
       'pomodoro_duration_minutes': pomodoroDurationMinutes,
@@ -118,23 +158,22 @@ factory Task.fromJson(Map<String, dynamic> json) {
 class Tag {
   final String id;
   final String name;
-  String? color;
+  final ItemColor color;
 
-  Tag({required this.id, required this.name, this.color});
+  Tag({required this.id, required this.name, required this.color});
 
   factory Tag.fromJson(Map<String, dynamic> json) {
     return Tag(
       id: json['id'],
       name: json['name'],
-      color: json['color'],
+      color: ItemColor.values.byNameIgnoreCase(
+        json['color'] ?? 'teal',
+        orElse: ItemColor.teal,
+      ),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'color': color,
-    };
+    return {'id': id, 'name': name, 'color': color};
   }
 }
