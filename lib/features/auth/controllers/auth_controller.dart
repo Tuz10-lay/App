@@ -100,7 +100,7 @@ class AuthController {
       await _authService.signInWithOAuth(provider);
       if (!context.mounted) return;
 
-      showAppSnackBar(context, "Sign in with OAuth successfully", SnackBarType.success);
+      showAppSnackBar(context, "Waiting for OAuth", SnackBarType.pending);
     } on AuthException catch (e) {
       logger.e("OAuth failed: ${e.message}");
       if (!context.mounted) return;
@@ -131,15 +131,33 @@ class AuthController {
       await _authService.updateUserEmail(newEmail);
       if (!context.mounted) return;
   
-      showAppSnackBar(context, "Emailed updated successfully", SnackBarType.success);
+      showAppSnackBar(context, "Check email $newEmail for verification", SnackBarType.pending);
     } on AuthException catch (e) {
       logger.e("Email update failed: ${e.message}");
       if (!context.mounted) return;
       showAppSnackBar(context, "Update email failed: ${e.message}", SnackBarType.failure);
     } catch (e) {
-      logger.e("Unexpeced error: $e");
+      logger.e("Unexpeced error while updating password: $e");
       if (!context.mounted) return;
       showAppSnackBar(context, "Update email failed due to unexpected error", SnackBarType.failure);
     }
   }
+
+  Future<void> updateUserPassword(BuildContext context, String newPassword) async {
+    try {
+      await _authService.updateUserPassword(newPassword);
+      if (!context.mounted) return;
+
+    } on AuthException catch (e) {
+      logger.e("Password update failed: ${e.message}");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Update password failed: ${e.message}", SnackBarType.failure);
+    } catch (e) {
+      logger.e("Unepected error while updating password: $e");
+      if (!context.mounted) return;
+      showAppSnackBar(context, "Update password failed due to unexpected error", SnackBarType.failure);
+    }
+  }
+
+   
 }

@@ -32,10 +32,26 @@ class SidebarMenu extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.task_alt_sharp),
+            title: const Text("All Tasks"),
+            onTap: () {
+              onItemSelected(1);
+              Navigator.pop(context);
+            }
+          ),
+          ListTile(
             leading: const Icon(Icons.task),
             title: const Text("Agenda View"),
             onTap: () {
-              onItemSelected(1);
+              onItemSelected(2);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_month),
+            title: const Text("Calendar View"),
+            onTap: () {
+              onItemSelected(3);
               Navigator.pop(context);
             },
           ),
@@ -44,7 +60,7 @@ class SidebarMenu extends StatelessWidget {
             leading: const Icon(Icons.settings),
             title: const Text("Settings"),
             onTap: () {
-              onItemSelected(2);
+              onItemSelected(4);
               Navigator.pop(context);
             },
           ),
