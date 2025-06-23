@@ -3,42 +3,41 @@ import 'package:looninary/core/models/task_model.dart';
 
 class TaskService {
   final SupabaseClient _client = Supabase.instance.client;
+  final String _tableName = 'tasks';
 
-  // Fetch all user's task
+  // Fetch all tasks for the current user
   Future<List<Task>> getTasks() async {
-    final response = await _client
-        .from('tasks')
-        .select()
-        .order('created_at', ascending: false);
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw const AuthException('User is not authenticated.');
 
-    // Since Supabase return a List<dynamic>, we need to cast i
-    final List<dynamic> data = response as List<dynamic>;
-
-    // Map list of JSON objects to a list of Task objects
-    return data
-        .map((json) => Task.fromJson(json as Map<String, dynamic>))
-        .toList();
+    final response = await _client.from(_tableName).select().eq('user_id', userId).order('created_at', ascending: false);
+    
+    final data = response as List<dynamic>;
+    return data.map((json) => Task.fromJson(json)).toList();
   }
 
-  Future<void> createTask({required String title, String? content}) async {
-    final user = _client.auth.currentUser;
-    if (user == null) {
-      throw Exception("User must be logged in to create a task");
-    }
+  // Add a new task
+  Future<Task> addTask(Map<String, dynamic> taskData) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw const AuthException('User is not authenticated.');
+    
+    // Add user_id to the task data before inserting
+    taskData['user_id'] = userId;
 
-    final taskMap = {'title': title, 'content': content, 'user_id': user.id};
-
-    await _client.from('tasks').insert(taskMap);
+    final response = await _client.from(_tableName).insert(taskData).select().single();
+    
+    return Task.fromJson(response);
   }
 
-  Future<void> updateTaskStatus(String taskId, TaskStatus newStatus) async {
-    await _client
-        .from('tasks')
-        .update({'status': newStatus.name})
-        .eq('id', taskId);
+  // Update an existing task
+  Future<Task> updateTask(String taskId, Map<String, dynamic> taskData) async {
+    final response = await _client.from(_tableName).update(taskData).eq('id', taskId).select().single();
+
+    return Task.fromJson(response);
   }
 
+  // Delete a task
   Future<void> deleteTask(String taskId) async {
-    await _client.from('tasks').delete().eq('id', taskId);
+    await _client.from(_tableName).delete().eq('id', taskId);
   }
 }

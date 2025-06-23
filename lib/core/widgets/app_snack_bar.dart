@@ -3,13 +3,21 @@ import 'package:looninary/core/theme/app_colors.dart';
 
 enum SnackBarType {
   success,
-  failure
+  failure,
+  pending
 }
 
 void showAppSnackBar(BuildContext context, String message, SnackBarType type) {
-  final Color backgroundColor = type == SnackBarType.success 
-    ? AppColors.green
-    : AppColors.maroon;
+  Color backgroundColor = AppColors.yellow ;
+  
+  if (type == SnackBarType.success) {
+    backgroundColor = AppColors.green;
+  } else if (type == SnackBarType.failure) {
+    backgroundColor = AppColors.maroon;
+  } else if (type == SnackBarType.pending) {
+    backgroundColor = AppColors.teal;
+  }
+
 
     // Hide the current snack bar if one is showing
     ScaffoldMessenger.of(context).hideCurrentSnackBar();

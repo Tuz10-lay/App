@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
+import 'package:looninary/features/home/views/calendar_view.dart';
 import 'package:looninary/features/home/views/sidebar_menu.dart';
 import 'package:looninary/features/home/views/agenda_view.dart';
 import 'package:looninary/features/home/views/settings_screen.dart';
+import 'package:looninary/features/home/views/all_tasks_view.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -19,13 +21,17 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     Center(child: Text('Dashboard Page')),
+    AllTasksView(),
     AgendaView(), 
+    CalendarPage(),
     SettingsScreen(),
   ];
   
   static const List<String> _widgetTitles = <String>[
     'Dashboard',
     'All Tasks',
+    'Agenda View',
+    'CalendarView',
     'Settings',
   ];
 
