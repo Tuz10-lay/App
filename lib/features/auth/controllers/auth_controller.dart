@@ -175,6 +175,7 @@ class AuthController {
       showAppSnackBar(context, "Update password failed: ${e.message}", SnackBarType.failure);
     } catch (e) {
       logger.e("Unexpected error while updating password: $e");
+
       if (!context.mounted) return;
       showAppSnackBar(context, "Update password failed due to unexpected error", SnackBarType.failure);
     }

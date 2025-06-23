@@ -100,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                           ),
+
                           const SizedBox(width: 12),
                           SocialIconButton(
                             iconPath: 'assets/icons/fb_logo.png',
@@ -120,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                           ),
+
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -175,6 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               widget.onShowForgotPassword!();
                             }
                           },
+
                           child: const Text(
                             'Forgot password?',
                             style: TextStyle(color: Colors.white70, fontSize: 14),
@@ -276,6 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ],
                             ),
+
                           ),
                         ),
                       ),

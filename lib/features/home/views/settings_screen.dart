@@ -28,6 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -80,6 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _passwordEditAllowed = value.isNotEmpty;
                   });
                 },
+
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -108,6 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         });
                       }
                     : null,
+
                 child: const Text('Update Password'),
               ),
             ],
