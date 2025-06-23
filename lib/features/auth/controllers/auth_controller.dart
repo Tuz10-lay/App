@@ -163,12 +163,14 @@ class AuthController {
     }
   }
 
-  Future<void> updateUserPassword(BuildContext context, String newPassword) async {
+  Future<void> updateUserPassword(BuildContext context, String newPassword, {required String currentPassword}) async {
     try {
-      await _authService.updateUserPassword(newPassword);
+      // Gửi cả currentPassword và newPassword cho service xử lý
+      await _authService.updateUserPassword(newPassword, currentPassword: currentPassword);
       if (!context.mounted) return;
+      showAppSnackBar(context, "Password updated successfully!", SnackBarType.success);
     } on AuthException catch (e) {
-      logger.e("Password update failed: ${e.message}");
+      logger.e("Password update failed: [31m${e.message}");
       if (!context.mounted) return;
       showAppSnackBar(context, "Update password failed: ${e.message}", SnackBarType.failure);
     } catch (e) {

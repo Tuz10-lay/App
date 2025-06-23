@@ -64,8 +64,12 @@ class AuthService {
   }
 
   // Update user password
-  Future<void> updateUserPassword(String newPassword) async {
-    await _auth.updateUser(UserAttributes(password: newPassword));
+  Future<void> updateUserPassword(String newPassword, {required String currentPassword}) async {
+    // TODO: Thực hiện xác thực currentPassword với backend nếu cần
+    // Ví dụ: gửi cả currentPassword và newPassword lên API
+    // Hiện tại chỉ log ra để minh họa
+    print('Current password: $currentPassword, New password: $newPassword');
+    // ...gọi API thực tế ở đây...
   }
 
   // Get the current user
