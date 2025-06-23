@@ -103,6 +103,11 @@ class AuthService {
     return false;
   }
 
+  // Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.resetPasswordForEmail(email);
+  }
+
   /// Clears the session from secure storage on logout.
   Future<void> _clearSession() async {
     await _storage.delete(key: _sessionKey);
