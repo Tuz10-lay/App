@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:looninary/core/theme/app_theme.dart';
 import 'package:looninary/features/auth/views/auth_gate.dart';
+import 'package:looninary/features/auth/views/register_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -23,6 +24,10 @@ class MyApp extends StatelessWidget {
       title: 'Looninary',
       theme: AppTheme.lightTheme,
       home: const AuthGate(),
+      debugShowCheckedModeBanner: false,
+      routes: {
+        '/register': (context) => const RegisterScreen(),
+      },
     );
   }
 }

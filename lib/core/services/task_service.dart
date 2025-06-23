@@ -1,5 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:looninary/core/services/task_service.dart';
 import 'package:looninary/core/models/task_model.dart';
 
 class TaskService {

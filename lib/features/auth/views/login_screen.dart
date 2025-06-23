@@ -5,6 +5,8 @@ import 'package:looninary/core/widgets/app_elevated_button.dart';
 import 'package:looninary/core/theme/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'forgot_password_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -35,105 +37,266 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                "Welcome to Looninary ✨",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email_rounded),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: _isObscure 
-                      ? Icon(Icons.visibility_off)
-                      : Icon(Icons.visibility),
-                    onPressed: () {
-                      _togglePasswordVisibility();
-                    },
-                  ),
-                ),
-                obscureText: _isObscure,
-              ),
-              SizedBox(height: 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  AppElevatedButton(
-                    text: "Log in",
-                    onPressed: () {
-                      _authController.logIn(
-                        context,
-                        _emailController.text,
-                        _passwordController.text,
-                      );
-                    },
-                  ),
-                  AppElevatedButton(
-                    text: "Sign up",
-                    onPressed: () {
-                      _authController.signUp(
-                        context,
-                        _emailController.text,
-                        _passwordController.text,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  AppElevatedButton(
-                    text: "Continue as Guest",
-                    onPressed: () {
-                      _authController.signInAnonymously(context);
-                    },
-                  ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      SocialIconButton(
-                        iconPath: 'assets/icons/google_logo.png',
-                        onTap: () {
-                          _authController.signInWithOAuth(
-                            context,
-                            OAuthProvider.google,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      SocialIconButton(
-                        iconPath: 'assets/icons/github_logo.png',
-                        onTap: () {
-                          _authController.signInWithOAuth(
-                            context,
-                            OAuthProvider.github,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.midnight,
+              AppColors.mauve,
             ],
           ),
         ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 24),
+                      Text(
+                        'Sign in',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Sign in with a social account',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SocialIconButton(
+                            iconPath: 'assets/icons/google_logo.png',
+                            onTap: () {
+                              _authController.signInWithOAuth(
+                                context,
+                                OAuthProvider.google,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          SocialIconButton(
+                            iconPath: 'assets/icons/github_logo.png',
+                            onTap: () {
+                              _authController.signInWithOAuth(
+                                context,
+                                OAuthProvider.github,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          SocialIconButton(
+                            iconPath: 'assets/icons/fb_logo.png',
+                            onTap: () {
+                              _authController.signInWithOAuth(
+                                context,
+                                OAuthProvider.facebook,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          SocialIconButton(
+                            iconPath: 'assets/icons/x_logo.png',
+                            onTap: () {
+                              _authController.signInWithOAuth(
+                                context,
+                                OAuthProvider.twitter,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: TextField(
+                          controller: _emailController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            border: InputBorder.none,
+                            prefixIcon: const Icon(Icons.email_rounded, color: Colors.white54),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: TextField(
+                          controller: _passwordController,
+                          style: const TextStyle(color: Colors.white),
+                          obscureText: _isObscure,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            border: InputBorder.none,
+                            prefixIcon: const Icon(Icons.lock, color: Colors.white54),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isObscure ? Icons.visibility_off : Icons.visibility,
+                                color: Colors.white54,
+                              ),
+                              onPressed: _togglePasswordVisibility,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Forgot password?',
+                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _authController.logIn(
+                              context,
+                              _emailController.text,
+                              _passwordController.text,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.mauve,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Sign in',
+                                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                              CircleAvatar(
+                                backgroundColor: Colors.white,
+                                radius: 18,
+                                child: Icon(Icons.arrow_forward, color: AppColors.mauve),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _authController.signInAnonymously(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.sapphire,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Use without signing in',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton(
+                          style: ButtonStyle(
+                            overlayColor: WidgetStateProperty.all(AppColors.mauve.withOpacity(0.1)),
+                            foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                              (Set<WidgetState> states) {
+                                if (states.contains(WidgetState.pressed)) {
+                                  return AppColors.mauve; // Đậm hơn khi nhấn
+                                }
+                                return AppColors.mauve;
+                              },
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/register');
+                          },
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Don't have an account? ",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              children: [
+                                WidgetSpan(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, '/register');
+                                    },
+                                    child: Text(
+                                      'Sign up',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
+      floatingActionButton: null,
     );
   }
 }

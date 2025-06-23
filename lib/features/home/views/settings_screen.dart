@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:looninary/core/theme/app_colors.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
