@@ -13,7 +13,7 @@ class AppTheme {
         primary: AppColors.surface0,
         secondary: AppColors.base,
         error: AppColors.error,
-        background: AppColors.background,
+        surface: AppColors.background,
       ),
 
       // Define the default font family (we'll add one later!)

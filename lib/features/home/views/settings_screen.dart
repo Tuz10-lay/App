@@ -70,11 +70,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             children: [
               TextFormField(
+                controller: _currentPasswordController,
                 obscureText: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Current password',
                   hintText: 'Enter current password',
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    _passwordEditAllowed = value.isNotEmpty;
+                  });
+                },
+
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -88,15 +95,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  if (_passwordController.text.isNotEmpty) {
-                    _authController.updateUserPassword(
-                      context,
-                      _passwordController.text.trim(),
-                    );
-                    _passwordController.clear();
-                  }
-                },
+                onPressed: _passwordEditAllowed && _passwordController.text.isNotEmpty
+                    ? () {
+                        // Gửi cả mật khẩu cũ và mới cho controller xử lý
+                        _authController.updateUserPassword(
+                          context,
+                          _passwordController.text.trim(),
+                          currentPassword: _currentPasswordController.text.trim(),
+                        );
+                        _passwordController.clear();
+                        _currentPasswordController.clear();
+                        setState(() {
+                          _passwordEditAllowed = false;
+                        });
+                      }
+                    : null,
+
                 child: const Text('Update Password'),
               ),
             ],
