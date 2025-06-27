@@ -4,6 +4,8 @@ import 'package:looninary/features/home/views/task_edit_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:looninary/core/models/task_model.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:looninary/features/home/views/dashboard_view.dart';
+import 'package:looninary/core/theme/theme_swithcher_button.dart';
 
 class AllTasksView extends StatefulWidget {
   const AllTasksView({super.key});
@@ -32,15 +34,19 @@ class _AllTasksViewState extends State<AllTasksView> {
       if (task == null) {
         // Add new task
         _taskController.addTask(result);
+        NotificationService().add('Task "${result['title']}" has been created!');
       } else {
         // Update existing task
         _taskController.updateTask(task.id, result);
+        NotificationService().add('Task "${result['title']}" has been updated!');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return ChangeNotifierProvider.value(
       value: _taskController,
       child: Scaffold(
@@ -50,58 +56,66 @@ class _AllTasksViewState extends State<AllTasksView> {
               return const Center(child: CircularProgressIndicator());
             }
             if (controller.error != null) {
-              return Center(child: Text(controller.error!));
+              return Center(child: Text(controller.error!, style: textTheme.bodyMedium?.copyWith(color: colorScheme.error)));
             }
             if (controller.tasks.isEmpty) {
-              return const Center(child: Text('No tasks yet. Add one!'));
+              return Center(child: Text('No tasks yet. Add one!', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)));
             }
-            
             return ListView.builder(
               itemCount: controller.tasks.length,
               itemBuilder: (context, index) {
                 final task = controller.tasks[index];
                 return Card(
+                  color: colorScheme.surface,
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
-                    title: Text(task.title),
-                    subtitle: 
-                      (task.content != null && task.content!.isNotEmpty)
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                              child: Html(
-                                data: task.content,
-                                style: {
-                                  "body": Style(
-                                    fontSize: FontSize(14.0),
-                                    color: Colors.black,
-                                  ),
-                                },
-                              ),
-                            )
-                          : null,
+                    title: Text(task.title, style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)),
+                    subtitle: (task.content != null && task.content!.isNotEmpty)
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                            child: Html(
+                              data: task.content,
+                              style: {
+                                "body": Style(
+                                  fontSize: FontSize(14.0),
+                                  color: colorScheme.onSurface,
+                                ),
+                              },
+                            ),
+                          )
+                        : null,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          icon: Icon(Icons.edit, color: colorScheme.primary),
                           onPressed: () => _showEditDialog(task: task),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
+                          icon: Icon(Icons.delete, color: colorScheme.error),
                           onPressed: () {
-                            // Show a confirmation dialog before deleting
                             showDialog(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                      title: const Text('Are you sure?'),
-                                      content: Text('Do you want to delete "${task.title}"?'),
-                                      actions: [
-                                        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('No')),
-                                        TextButton(onPressed: () {
-                                            _taskController.deleteTask(task.id);
-                                            Navigator.of(ctx).pop();
-                                        }, child: const Text('Yes')),
-                                      ],
-                                    ));
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: Text('Are you sure?', style: textTheme.titleMedium?.copyWith(color: colorScheme.onBackground)),
+                                content: Text('Do you want to delete "${task.title}"?', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onBackground)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(),
+                                    child: Text('No', style: textTheme.labelLarge?.copyWith(color: colorScheme.primary)),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      _taskController.deleteTask(task.id);
+                                      NotificationService().add('Task "${task.title}" has been deleted!');
+                                      Navigator.of(ctx).pop();
+                                    },
+                                    child: Text('Yes', style: textTheme.labelLarge?.copyWith(color: colorScheme.error)),
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -112,10 +126,19 @@ class _AllTasksViewState extends State<AllTasksView> {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showEditDialog(),
-          child: const Icon(Icons.add),
-          tooltip: 'Add Task',
+        floatingActionButton: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              onPressed: () => _showEditDialog(),
+              backgroundColor: colorScheme.primary,
+              child: Icon(Icons.add, color: colorScheme.onPrimary),
+              tooltip: 'Add Task',
+            ),
+            const SizedBox(height: 16),
+            const ThemeSwitcherButton(),
+          ],
         ),
       ),
     );

@@ -3,8 +3,7 @@ import 'package:looninary/core/models/task_model.dart';
 import 'package:looninary/features/home/controllers/task_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:looninary/core/theme/app_colors.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AgendaView extends StatefulWidget {
   const AgendaView({super.key});
@@ -25,6 +24,7 @@ class _AgendaViewState extends State<AgendaView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ChangeNotifierProvider(
       create: (_) => _taskController,
       child: Consumer<TaskController>(
@@ -32,10 +32,9 @@ class _AgendaViewState extends State<AgendaView> {
           if (controller.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           return SfCalendar(
             view: CalendarView.schedule,
-            dataSource: _getCalendarDataSource(controller.tasks),
+            dataSource: _getCalendarDataSource(controller.tasks, colorScheme),
             scheduleViewSettings: const ScheduleViewSettings(
               appointmentItemHeight: 70,
             ),
@@ -45,13 +44,14 @@ class _AgendaViewState extends State<AgendaView> {
     );
   }
 
-  _TaskDataSource _getCalendarDataSource(List<Task> tasks) {
-    return _TaskDataSource(tasks);
+  _TaskDataSource _getCalendarDataSource(List<Task> tasks, ColorScheme colorScheme) {
+    return _TaskDataSource(tasks, colorScheme);
   }
 }
 
 class _TaskDataSource extends CalendarDataSource {
-  _TaskDataSource(List<Task> source) {
+  final ColorScheme colorScheme;
+  _TaskDataSource(List<Task> source, this.colorScheme) {
     appointments = source;
   }
 
@@ -62,8 +62,7 @@ class _TaskDataSource extends CalendarDataSource {
 
   @override
   DateTime getEndTime(int index) {
-    return (appointments![index] as Task).dueDate ??
-        getStartTime(index).add(const Duration(hours: 1));
+    return (appointments![index] as Task).dueDate ?? getStartTime(index).add(const Duration(hours: 1));
   }
 
   @override
@@ -75,15 +74,15 @@ class _TaskDataSource extends CalendarDataSource {
   Color getColor(int index) {
     switch ((appointments![index] as Task).color) {
       case ItemColor.maroon:
-        return AppColors.maroon;
+        return colorScheme.error;
       case ItemColor.peach:
-        return AppColors.peach;
+        return colorScheme.secondary;
       case ItemColor.yellow:
-        return AppColors.yellow;
+        return colorScheme.tertiary;
       case ItemColor.green:
-        return AppColors.green;
+        return colorScheme.primaryContainer;
       case ItemColor.teal:
-        return AppColors.teal;
+        return colorScheme.secondaryContainer;
     }
   }
 }

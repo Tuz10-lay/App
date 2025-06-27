@@ -65,7 +65,7 @@ class _AuthGateState extends State<AuthGate> {
         final AuthState? authState = snapshot.data;
         // If the user has a session, they are logged in
         if (authState != null && authState.session != null) {
-          // Show the HomePage if logged in
+          // Trả về HomePage trực tiếp, không bọc Provider nữa
           return HomePage();
         } else {
           // Quản lý điều hướng auth tập trung tại đây

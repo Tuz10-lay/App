@@ -3,7 +3,6 @@ import 'package:looninary/core/models/task_model.dart';
 import 'package:looninary/features/home/controllers/task_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:looninary/core/theme/app_colors.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -25,6 +24,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ChangeNotifierProvider(
       create: (_) => _taskController,
       child: Consumer<TaskController>(
@@ -32,7 +32,6 @@ class _CalendarPageState extends State<CalendarPage> {
           if (controller.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           return Column(
             children: [
               Padding(
@@ -49,12 +48,16 @@ class _CalendarPageState extends State<CalendarPage> {
                       _currentView = newSelection.first;
                     });
                   },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(colorScheme.surfaceVariant),
+                    foregroundColor: MaterialStateProperty.all(colorScheme.onSurfaceVariant),
+                  ),
                 ),
               ),
               Expanded(
                 child: SfCalendar(
                   view: _currentView,
-                  dataSource: getCalendarDataSource(controller.tasks),
+                  dataSource: getCalendarDataSource(controller.tasks, colorScheme),
                   initialSelectedDate: DateTime.now(),
                   monthViewSettings: const MonthViewSettings(
                     appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
@@ -62,7 +65,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                   onTap: (details) {
                      ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Tapped on ${details.date?.day}/${details.date?.month}'))
+                      SnackBar(content: Text('Tapped on ${details.date?.day}/${details.date?.month}'))
                     );
                   },
                 ),
@@ -76,7 +79,8 @@ class _CalendarPageState extends State<CalendarPage> {
 }
 
 class TaskDataSource extends CalendarDataSource {
-  TaskDataSource(List<Task> source) {
+  final ColorScheme colorScheme;
+  TaskDataSource(List<Task> source, this.colorScheme) {
     appointments = source;
   }
 
@@ -87,8 +91,7 @@ class TaskDataSource extends CalendarDataSource {
 
   @override
   DateTime getEndTime(int index) {
-    return (appointments![index] as Task).dueDate ??
-        getStartTime(index).add(const Duration(hours: 1));
+    return (appointments![index] as Task).dueDate ?? getStartTime(index).add(const Duration(hours: 1));
   }
 
   @override
@@ -99,15 +102,15 @@ class TaskDataSource extends CalendarDataSource {
   @override
   Color getColor(int index) {
     switch ((appointments![index] as Task).color) {
-      case ItemColor.maroon: return AppColors.maroon;
-      case ItemColor.peach: return AppColors.peach;
-      case ItemColor.yellow: return AppColors.yellow;
-      case ItemColor.green: return AppColors.green;
-      case ItemColor.teal: return AppColors.teal;
+      case ItemColor.maroon: return colorScheme.error;
+      case ItemColor.peach: return colorScheme.secondary;
+      case ItemColor.yellow: return colorScheme.tertiary;
+      case ItemColor.green: return colorScheme.primaryContainer;
+      case ItemColor.teal: return colorScheme.secondaryContainer;
     }
   }
 }
 
-TaskDataSource getCalendarDataSource(List<Task> tasks) {
-  return TaskDataSource(tasks);
+TaskDataSource getCalendarDataSource(List<Task> tasks, ColorScheme colorScheme) {
+  return TaskDataSource(tasks, colorScheme);
 }

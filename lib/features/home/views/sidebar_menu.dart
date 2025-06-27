@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:looninary/core/theme/app_colors.dart';
 
 class SidebarMenu extends StatelessWidget {
   // cacllback function to notify the HomePage wich item was tapped
@@ -9,56 +8,62 @@ class SidebarMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Drawer(
+      backgroundColor: colorScheme.surface,
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+            ),
             child: Text(
               "Looninary",
-              style: TextStyle(
+              style: textTheme.titleLarge?.copyWith(
                 fontSize: 24,
-                color: AppColors.green,
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.dashboard_rounded),
-            title: const Text("Dasboard"),
+            leading: Icon(Icons.dashboard_rounded, color: colorScheme.onSurface),
+            title: Text("Dashboard", style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)),
             onTap: () {
               onItemSelected(0);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            leading: const Icon(Icons.task_alt_sharp),
-            title: const Text("All Tasks"),
+            leading: Icon(Icons.task_alt_sharp, color: colorScheme.onSurface),
+            title: Text("All Tasks", style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)),
             onTap: () {
               onItemSelected(1);
               Navigator.pop(context);
             }
           ),
           ListTile(
-            leading: const Icon(Icons.task),
-            title: const Text("Agenda View"),
+            leading: Icon(Icons.task, color: colorScheme.onSurface),
+            title: Text("Agenda View", style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)),
             onTap: () {
               onItemSelected(2);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            leading: const Icon(Icons.calendar_month),
-            title: const Text("Calendar View"),
+            leading: Icon(Icons.calendar_month, color: colorScheme.onSurface),
+            title: Text("Calendar View", style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)),
             onTap: () {
               onItemSelected(3);
               Navigator.pop(context);
             },
           ),
-          const Divider(),
+          Divider(color: colorScheme.outline.withOpacity(0.2)),
           ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text("Settings"),
+            leading: Icon(Icons.settings, color: colorScheme.onSurface),
+            title: Text("Settings", style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)),
             onTap: () {
               onItemSelected(4);
               Navigator.pop(context);

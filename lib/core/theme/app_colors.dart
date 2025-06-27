@@ -4,7 +4,7 @@ class AppColors {
   // Prevent instantiation
   AppColors._();
 
-  static const Color base = Color(0xFFEFF1F5); // for white text
+  static const Color base = Color(0xFFF5F6FA); // trắng
 
   // Main Palette (latte) // Light
   static const Color flamingo = Color(0xFFDD7878); 
@@ -21,7 +21,7 @@ class AppColors {
   static const Color sky = Color(0xFF04A5E5);
   static const Color sapphire = Color(0xFF209FB5);
   static const Color background = Color(0xFFFFF7F9); // Very light pink
-  static const Color text = Color(0xFF4C4F69);
+  static const Color text = Color(0xFF23262F); // chữ đậm
   static const Color subText1 = Color(0xFF5C5F77);
   
   static const Color surface0 = Color(0xFFCCD0DA);
@@ -32,6 +32,6 @@ class AppColors {
   static const Color success = Color(0xFF6EE7B7);
   static const Color warning = Color(0xFFFBBF24);
   static const Color error = Color(0xFFF87171);
-  static const Color midnight = Color(0xFF181C2F); // Màu nền xanh tím đậm giống ảnh demo
+  static const Color midnight = Color(0xFF181A20); // đen
 }
 

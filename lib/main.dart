@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:looninary/core/theme/app_theme.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/theme_manager.dart'; // Nếu dùng ValueNotifier như hướng dẫn trước
 import 'package:looninary/features/auth/views/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -19,11 +20,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Looninary',
-      theme: AppTheme.lightTheme,
-      home: const AuthGate(),
-      debugShowCheckedModeBanner: false,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeManager.themeMode,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'Looninary',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: mode,
+          home: const AuthGate(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }
