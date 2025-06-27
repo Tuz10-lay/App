@@ -13,7 +13,7 @@ class AppTheme {
         primary: AppColors.surface0,
         secondary: AppColors.base,
         error: AppColors.error,
-        background: AppColors.background,
+        surface: AppColors.background,
       ),
 
       textTheme: const TextTheme(

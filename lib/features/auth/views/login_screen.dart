@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:looninary/core/widgets/social_icon_button.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
-import 'package:looninary/core/widgets/app_elevated_button.dart';
 import 'package:looninary/core/theme/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final VoidCallback? onShowRegister;
+  final VoidCallback? onShowForgotPassword;
+  const LoginScreen({super.key, this.onShowRegister, this.onShowForgotPassword});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -99,6 +100,28 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                           ),
+
+                          const SizedBox(width: 12),
+                          SocialIconButton(
+                            iconPath: 'assets/icons/fb_logo.png',
+                            onTap: () {
+                              _authController.signInWithOAuth(
+                                context,
+                                OAuthProvider.facebook,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          SocialIconButton(
+                            iconPath: 'assets/icons/x_logo.png',
+                            onTap: () {
+                              _authController.signInWithOAuth(
+                                context,
+                                OAuthProvider.twitter,
+                              );
+                            },
+                          ),
+
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -149,7 +172,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            if (widget.onShowForgotPassword != null) {
+                              widget.onShowForgotPassword!();
+                            }
+                          },
+
                           child: const Text(
                             'Forgot password?',
                             style: TextStyle(color: Colors.white70, fontSize: 14),
@@ -230,11 +258,28 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.pushNamed(context, '/register');
+                            if (widget.onShowRegister != null) {
+                              widget.onShowRegister!();
+                            }
                           },
-                          child: const Text(
-                            "Don't have an account? Sign up",
-                            style: TextStyle(fontWeight: FontWeight.w500),
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Don't have an account? ",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'Sign up',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+
                           ),
                         ),
                       ),
