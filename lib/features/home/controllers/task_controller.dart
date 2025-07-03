@@ -18,17 +18,16 @@ class TaskController extends ChangeNotifier {
   String _searchQuery = '';
   TaskStatus? _statusFilter;
   ItemColor? _colorFilter;
-  DateTime? _dateFilter; 
+  DateTime? _dateFilter;
   DateTime? get dateFilter => _dateFilter;
 
-  // Public getter for the filtered and structured tasks
   List<Task> get filteredTasks {
     List<Task> filtered;
 
     if (_searchQuery.isEmpty &&
         _statusFilter == null &&
         _colorFilter == null &&
-        _dateFilter == null) { 
+        _dateFilter == null) {
       return _tasks;
     } else {
       var filteredFlat = _flatTasks.where((task) {
@@ -38,7 +37,6 @@ class TaskController extends ChangeNotifier {
             _statusFilter == null || task.taskStatus == _statusFilter;
         final colorMatch =
             _colorFilter == null || task.color == _colorFilter;
-
         final dateMatch = _dateFilter == null ||
             (task.startDate != null &&
                 DateUtils.isSameDay(task.startDate, _dateFilter)) ||
@@ -122,7 +120,7 @@ class TaskController extends ChangeNotifier {
     _searchQuery = '';
     _statusFilter = null;
     _colorFilter = null;
-    _dateFilter = null; 
+    _dateFilter = null;
     notifyListeners();
   }
 
@@ -153,10 +151,8 @@ class TaskController extends ChangeNotifier {
 
   Future<void> addTask(Map<String, dynamic> taskData) async {
     try {
-      final response =
-          await _supabase.from('tasks').insert(taskData).select();
+      final response = await _supabase.from('tasks').insert(taskData).select();
       final newTask = Task.fromJson(response.first);
-
       _flatTasks.add(newTask);
       _structureTasks(_flatTasks);
       notifyListeners();
@@ -164,60 +160,92 @@ class TaskController extends ChangeNotifier {
       logger.e('Error adding task', error: e, stackTrace: s);
     }
   }
+  
+  // --- NEW: Method to cycle through task statuses ---
+  Future<void> cycleTaskStatus(Task task) async {
+    TaskStatus nextStatus;
+    switch (task.taskStatus) {
+      case TaskStatus.notStarted:
+        nextStatus = TaskStatus.inProgress;
+        break;
+      case TaskStatus.inProgress:
+        nextStatus = TaskStatus.completed;
+        break;
+      case TaskStatus.completed:
+        nextStatus = TaskStatus.notStarted;
+        break;
+      case TaskStatus.blocked:
+        // Blocked tasks can only be changed via the edit dialog
+        return;
+    }
+    await updateTask(task.id, {'status': nextStatus.toDbValue()});
+  }
+
+  // --- NEW: Recursive check to auto-complete parent tasks ---
+  Future<void> _checkAndCompleteParent(String taskId) async {
+    final task = _flatTasks.firstWhere((t) => t.id == taskId);
+    final parentId = task.parentId;
+
+    if (parentId == null) return; // No parent, nothing to do
+
+    final siblings = _flatTasks.where((t) => t.parentId == parentId).toList();
+    if (siblings.isEmpty) return;
+
+    final allChildrenAreComplete =
+        siblings.every((sibling) => sibling.taskStatus == TaskStatus.completed);
+
+    if (allChildrenAreComplete) {
+      // This recursive call will bubble up the tree
+      await updateTask(parentId, {'status': TaskStatus.completed.toDbValue()});
+    }
+  }
 
   Future<void> updateTask(String id, Map<String, dynamic> taskData) async {
     final originalTasks = List<Task>.from(_flatTasks);
     final taskToUpdate = _flatTasks.firstWhere((t) => t.id == id);
+    
+    // Determine if the status is changing to 'Completed'
+    final newStatusString = taskData['status'];
+    bool isCompleting = newStatusString == TaskStatus.completed.toDbValue();
 
-    final updatedTask = Task(
-      id: taskToUpdate.id,
-      userId: taskToUpdate.userId,
-      createdAt: taskToUpdate.createdAt,
-      title: taskData['title'] ?? taskToUpdate.title,
-      content: taskData['content'] ?? taskToUpdate.content,
-      parentId: taskData.containsKey('parent_id')
-          ? taskData['parent_id']
-          : taskToUpdate.parentId,
+    final updatedTask = taskToUpdate.copyWith(
+      title: taskData['title'],
+      content: taskData['content'],
+      parentId: taskData.containsKey('parent_id') ? taskData['parent_id'] : null,
       color: taskData['color'] != null
           ? ItemColor.values.byName(taskData['color'])
-          : taskToUpdate.color,
-      taskStatus: taskData['status'] != null
-          ? TaskStatus.values.firstWhere(
-              (e) => e.toDbValue() == taskData['status'],
+          : null,
+      taskStatus: newStatusString != null
+          ? TaskStatus.values.firstWhere((e) => e.toDbValue() == newStatusString,
               orElse: () => taskToUpdate.taskStatus)
-          : taskToUpdate.taskStatus,
+          : null,
       startDate: taskData['start_date'] != null
           ? DateTime.parse(taskData['start_date'])
           : taskToUpdate.startDate,
       dueDate: taskData['due_date'] != null
           ? DateTime.parse(taskData['due_date'])
           : taskToUpdate.dueDate,
-      isHibernated: taskToUpdate.isHibernated,
-      taskPriority: taskToUpdate.taskPriority,
-      taskType: taskToUpdate.taskType,
-      pomodoroCyclesCompleted: taskToUpdate.pomodoroCyclesCompleted,
-      pomodoroDurationMinutes: taskToUpdate.pomodoroDurationMinutes,
-      progress: taskToUpdate.progress,
-      tags: taskToUpdate.tags,
-      children: taskToUpdate.children,
     );
 
-    final newFlatList =
-        _flatTasks.map((t) => t.id == id ? updatedTask : t).toList();
+    final newFlatList = _flatTasks.map((t) => t.id == id ? updatedTask : t).toList();
     _structureTasks(newFlatList);
     notifyListeners();
 
     try {
       await _supabase.from('tasks').update(taskData).eq('id', id);
+      // If the task was just completed, check its parent
+      if (isCompleting) {
+        await _checkAndCompleteParent(id);
+      }
     } catch (e, s) {
-      logger.e("Failed to update task. Reverting UI.",
-          error: e, stackTrace: s);
+      logger.e("Failed to update task. Reverting UI.", error: e, stackTrace: s);
       _structureTasks(originalTasks);
       notifyListeners();
     }
   }
 
   Future<void> toggleHibernate(String id, bool isHibernated) async {
+
     final originalTasks = List<Task>.from(_flatTasks);
 
     final Set<String> allIdsToUpdate = {id};

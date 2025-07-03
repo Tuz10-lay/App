@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import the intl package for formatting
+import 'package:intl/intl.dart';
 import 'package:looninary/core/models/task_model.dart';
 
 class TaskEditDialog extends StatefulWidget {
@@ -18,8 +18,13 @@ class TaskEditDialog extends StatefulWidget {
 
 class _TaskEditDialogState extends State<TaskEditDialog> {
   final _formKey = GlobalKey<FormState>();
+  // FIX: Key to measure the Autocomplete field's width
+  final GlobalKey _autocompleteKey = GlobalKey();
+
   late TextEditingController _titleController;
   late TextEditingController _contentController;
+  late TextEditingController _parentController;
+
   String? _selectedParentId;
   ItemColor _selectedColor = ItemColor.teal;
   TaskStatus _selectedStatus = TaskStatus.notStarted;
@@ -31,17 +36,30 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
     super.initState();
     _titleController = TextEditingController(text: widget.task?.title ?? '');
     _contentController = TextEditingController(text: widget.task?.content ?? '');
+    _parentController = TextEditingController();
+
     _selectedParentId = widget.task?.parentId;
     _selectedColor = widget.task?.color ?? ItemColor.teal;
     _selectedStatus = widget.task?.taskStatus ?? TaskStatus.notStarted;
     _selectedStartDate = widget.task?.startDate;
     _selectedDueDate = widget.task?.dueDate;
+
+    if (_selectedParentId != null && widget.allTasks != null) {
+      try {
+        final parentTask =
+            widget.allTasks!.firstWhere((t) => t.id == _selectedParentId);
+        _parentController.text = parentTask.title;
+      } catch (e) {
+        // Parent task not found
+      }
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
+    _parentController.dispose();
     super.dispose();
   }
 
@@ -61,12 +79,12 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
       Navigator.of(context).pop(result);
     }
   }
-  
-  // --- FIXED: Combined Date and Time Picker Logic ---
-  Future<void> _pickDateTime(BuildContext context, {required bool isStartDate}) async {
-    final initialDate = (isStartDate ? _selectedStartDate : _selectedDueDate) ?? DateTime.now();
 
-    // 1. Pick the Date
+  Future<void> _pickDateTime(BuildContext context,
+      {required bool isStartDate}) async {
+    final initialDate =
+        (isStartDate ? _selectedStartDate : _selectedDueDate) ?? DateTime.now();
+
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -74,17 +92,15 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
     );
 
-    if (pickedDate == null) return; // User canceled the date picker
+    if (pickedDate == null) return;
 
-    // 2. Pick the Time
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(initialDate),
     );
 
-    if (pickedTime == null) return; // User canceled the time picker
+    if (pickedTime == null) return;
 
-    // 3. Combine Date and Time
     final finalDateTime = DateTime(
       pickedDate.year,
       pickedDate.month,
@@ -92,7 +108,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
       pickedTime.hour,
       pickedTime.minute,
     );
-    
+
     setState(() {
       if (isStartDate) {
         _selectedStartDate = finalDateTime;
@@ -104,11 +120,9 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // Helper for formatting the date and time text on the buttons
     String formatDateTime(DateTime? dt) {
-        if (dt == null) return '';
-        // e.g., "Jul 3, 2025, 6:30 PM"
-        return DateFormat.yMd().add_jm().format(dt);
+      if (dt == null) return '';
+      return DateFormat.yMd().add_jm().format(dt);
     }
 
     return AlertDialog(
@@ -119,7 +133,6 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              // ... (Title, Content, Parent Task, Status, Color Dropdowns remain the same)
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Title'),
@@ -133,31 +146,87 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _contentController,
-                decoration: const InputDecoration(labelText: 'Content (optional)'),
+                decoration:
+                    const InputDecoration(labelText: 'Content (optional)'),
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String?>(
-                value: _selectedParentId,
-                hint: const Text('No parent task'),
-                decoration: const InputDecoration(labelText: 'Parent Task'),
-                items: [
-                  const DropdownMenuItem(
-                    value: null,
-                    child: Text('None'),
-                  ),
-                  if (widget.allTasks != null)
-                    ...widget.allTasks!
-                        .where((t) => t.id != widget.task?.id)
-                        .map((task) => DropdownMenuItem(
-                              value: task.id,
-                              child: Text(task.title),
-                            )),
-                ],
-                onChanged: (value) {
+              Autocomplete<Task>(
+                key: _autocompleteKey, // Assign key to the top-level widget
+                initialValue: TextEditingValue(text: _parentController.text),
+                displayStringForOption: (Task option) => option.title,
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    // This is handled in fieldViewBuilder's clear button
+                    return const Iterable<Task>.empty();
+                  }
+                  return widget.allTasks?.where((Task option) {
+                        final isItself = option.id == widget.task?.id;
+                        final matches = option.title
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase());
+                        return !isItself && matches;
+                      }) ??
+                      const Iterable<Task>.empty();
+                },
+                onSelected: (Task selection) {
                   setState(() {
-                    _selectedParentId = value;
+                    _selectedParentId = selection.id;
+                    _parentController.text = selection.title;
                   });
+                  // Also update the controller in fieldViewBuilder
+                  // This is handled by passing the controller
+                },
+                optionsViewBuilder: (context, onSelected, options) {
+                  // Find the RenderBox of the text field using its GlobalKey.
+                  final RenderBox? fieldRenderBox = _autocompleteKey
+                      .currentContext
+                      ?.findRenderObject() as RenderBox?;
+                  final double fieldWidth = fieldRenderBox?.size.width ?? 300;
+
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: SizedBox(
+                        width: fieldWidth, // Apply the measured width
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final option = options.elementAt(index);
+                            return ListTile(
+                              title: Text(option.title),
+                              onTap: () => onSelected(option),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                fieldViewBuilder: (context, fieldTextEditingController,
+                    fieldFocusNode, onFieldSubmitted) {
+                  // Sync our state controller with the field's controller
+                  _parentController = fieldTextEditingController;
+
+                  return TextFormField(
+                    controller: fieldTextEditingController,
+                    focusNode: fieldFocusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Parent Task (optional)',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            fieldTextEditingController.clear();
+                            _selectedParentId = null;
+                          });
+                        },
+                      ),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 16),
@@ -167,12 +236,15 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     child: DropdownButtonFormField<TaskStatus>(
                       value: _selectedStatus,
                       decoration: const InputDecoration(labelText: 'Status'),
-                      items: TaskStatus.values.map((status) => DropdownMenuItem(
-                        value: status,
-                        child: Text(status.toDbValue()),
-                      )).toList(),
+                      items: TaskStatus.values
+                          .map((status) => DropdownMenuItem(
+                                value: status,
+                                child: Text(status.toDbValue()),
+                              ))
+                          .toList(),
                       onChanged: (value) {
-                        if (value != null) setState(() => _selectedStatus = value);
+                        if (value != null)
+                          setState(() => _selectedStatus = value);
                       },
                     ),
                   ),
@@ -181,31 +253,37 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     child: DropdownButtonFormField<ItemColor>(
                       value: _selectedColor,
                       decoration: const InputDecoration(labelText: 'Color'),
-                      items: ItemColor.values.map((color) => DropdownMenuItem(
-                        value: color,
-                        child: Row(
-                          children: [
-                            Icon(Icons.circle, color: color.toColor(context), size: 16),
-                            const SizedBox(width: 8),
-                            Text(color.name),
-                          ],
-                        ),
-                      )).toList(),
+                      items: ItemColor.values
+                          .map((color) => DropdownMenuItem(
+                                value: color,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.circle,
+                                        color: color.toColor(context),
+                                        size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(color.name),
+                                  ],
+                                ),
+                              ))
+                          .toList(),
                       onChanged: (value) {
-                        if (value != null) setState(() => _selectedColor = value);
+                        if (value != null)
+                          setState(() => _selectedColor = value);
                       },
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              // --- FIXED: Date/Time buttons ---
               Row(
                 children: [
-                   Expanded(
+                  Expanded(
                     child: TextButton.icon(
                       icon: const Icon(Icons.calendar_today),
-                      label: Text(_selectedStartDate == null ? 'Start Date' : formatDateTime(_selectedStartDate)),
+                      label: Text(_selectedStartDate == null
+                          ? 'Start Date'
+                          : formatDateTime(_selectedStartDate)),
                       onPressed: () => _pickDateTime(context, isStartDate: true),
                     ),
                   ),
@@ -213,8 +291,11 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                   Expanded(
                     child: TextButton.icon(
                       icon: const Icon(Icons.flag),
-                      label: Text(_selectedDueDate == null ? 'Due Date' : formatDateTime(_selectedDueDate)),
-                       onPressed: () => _pickDateTime(context, isStartDate: false),
+                      label: Text(_selectedDueDate == null
+                          ? 'Due Date'
+                          : formatDateTime(_selectedDueDate)),
+                      onPressed: () =>
+                          _pickDateTime(context, isStartDate: false),
                     ),
                   ),
                 ],

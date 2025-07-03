@@ -10,40 +10,35 @@ class AllTasksView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => TaskController(),
-      child: Consumer<TaskController>(
-        builder: (context, controller, child) {
-          void showEditDialog({Task? task}) async {
-            final result = await showDialog<Map<String, dynamic>>(
-              context: context,
-              builder: (ctx) => TaskEditDialog(
-                task: task,
-                allTasks: controller.flatTasks,
-              ),
-            );
-
-            if (result != null) {
-              if (task == null) {
-                controller.addTask(result);
-              } else {
-                controller.updateTask(task.id, result);
-              }
-            }
-          }
-
-          return Scaffold(
-            body: _buildBody(context, controller, showEditDialog),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => showEditDialog(),
-              tooltip: 'Add Task',
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              child: const Icon(Icons.add),
+    return Consumer<TaskController>(
+      builder: (context, controller, child) {
+        void showEditDialog({Task? task}) async {
+          final result = await showDialog<Map<String, dynamic>>(
+            context: context,
+            builder: (ctx) => TaskEditDialog(
+              task: task,
+              allTasks: controller.flatTasks,
             ),
           );
-        },
-      ),
+
+          if (result != null) {
+            if (task == null) {
+              controller.addTask(result);
+            } else {
+              controller.updateTask(task.id, result);
+            }
+          }
+        }
+
+        return Scaffold(
+          body: _buildBody(context, controller, showEditDialog),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => showEditDialog(),
+            tooltip: 'Add Task',
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
     );
   }
 
@@ -61,7 +56,7 @@ class AllTasksView extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, TaskController controller,
       Function({Task? task}) showEditDialog) {
-    if (controller.isLoading) {
+    if (controller.isLoading && controller.flatTasks.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -90,7 +85,7 @@ class AllTasksView extends StatelessWidget {
                           const InputDecoration(border: OutlineInputBorder()),
                       items: [
                         const DropdownMenuItem(
-                            value: null, child: Text('Search By Status - All')),
+                            value: null, child: Text('Status - All')),
                         ...TaskStatus.values.map((status) => DropdownMenuItem(
                               value: status,
                               child: Text(status.toDbValue()),
@@ -108,7 +103,7 @@ class AllTasksView extends StatelessWidget {
                           const InputDecoration(border: OutlineInputBorder()),
                       items: [
                         const DropdownMenuItem(
-                            value: null, child: Text('Search by Color - All')),
+                            value: null, child: Text('Color - All')),
                         ...ItemColor.values.map((color) => DropdownMenuItem(
                               value: color,
                               child: Row(
@@ -158,7 +153,7 @@ class AllTasksView extends StatelessWidget {
         ),
         Expanded(
           child: tasksToDisplay.isEmpty
-              ? const Center(child: Text('No tasks match your search.'))
+              ? const Center(child: Text('No tasks found.'))
               : ListView.builder(
                   padding: const EdgeInsets.only(bottom: 80.0),
                   itemCount: tasksToDisplay.length,
@@ -190,7 +185,7 @@ class _TaskNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Provider.of<TaskController>(context);
-    final double indentation = level * 30.0;
+    final double indentation = level * 24.0;
 
     final bool isExpanded = controller.expandedTaskIds.contains(task.id);
 
@@ -256,157 +251,175 @@ class _TaskCard extends StatelessWidget {
     final onStripColor = task.color.onColor(context);
 
     final double progress = task.children.isNotEmpty
-        ? task.children
-                .where((c) => c.taskStatus == TaskStatus.completed)
-                .length /
+        ? task.children.where((c) => c.taskStatus == TaskStatus.completed).length /
             task.children.length
         : 0.0;
+        
+    final bool isCompleted = task.taskStatus == TaskStatus.completed;
+    final dateStyle = theme.textTheme.bodySmall?.copyWith(
+      color: isCompleted
+        ? theme.textTheme.bodySmall?.color?.withOpacity(0.6)
+        : theme.textTheme.bodySmall?.color
+    );
 
     return Opacity(
-      opacity: task.isHibernated ? 0.5 : 1.0,
+      opacity: task.isHibernated ? 0.5 : (isCompleted ? 0.7 : 1.0),
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        elevation: 6,
-        shadowColor: Colors.black.withOpacity(0.2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        elevation: 3,
+        shadowColor: Colors.black.withOpacity(0.15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(62, 12, 12, 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          task.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: task.isHibernated
-                                ? Colors.grey
-                                : theme.colorScheme.onSurface,
-                            decoration: task.taskStatus == TaskStatus.completed
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                          ),
-                        ),
-                        if (task.content != null && task.content!.isNotEmpty)
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                            child: Text(task.content!,
-                                style: theme.textTheme.bodyMedium),
-                          ),
-                        Row(
-                          children: [
-                            if (task.startDate != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 16.0),
-                                child: Row(children: [
-                                  Icon(Icons.calendar_today,
-                                      size: 14,
-                                      color:
-                                          theme.colorScheme.onSurfaceVariant),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                      DateFormat.yMMMd()
-                                          .format(task.startDate!),
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: theme
-                                              .colorScheme.onSurfaceVariant)),
-                                ]),
-                              ),
-                            if (task.dueDate != null)
-                              Row(children: [
-                                Icon(Icons.flag,
-                                    size: 14,
-                                    color:
-                                        theme.colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 4.0),
-                                Text(DateFormat.yMMMd().format(task.dueDate!),
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: theme
-                                            .colorScheme.onSurfaceVariant)),
-                              ]),
-                          ],
-                        ),
-                        if (task.children.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${(progress * 100).toInt()}% complete',
-                                  style: theme.textTheme.labelSmall,
-                                ),
-                                const SizedBox(height: 4),
-                                LinearProgressIndicator(
-                                  value: progress,
-                                  backgroundColor: Colors.grey.shade300,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(stripColor),
-                                  minHeight: 6,
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                              ],
+        child: InkWell(
+          onTap: () => controller.cycleTaskStatus(task),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(52, 10, 8, 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: task.isHibernated || isCompleted
+                                  ? theme.colorScheme.onSurface.withOpacity(0.6)
+                                  : theme.colorScheme.onSurface,
+                              decoration: isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
                             ),
                           ),
+                          if (task.content != null && task.content!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                task.content!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  decoration: isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                  color: isCompleted
+                                      ? theme.textTheme.bodySmall?.color?.withOpacity(0.6)
+                                      : theme.textTheme.bodySmall?.color
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          if (task.startDate != null || task.dueDate != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6.0),
+                              child: Row(
+                                children: [
+                                  if (task.startDate != null)
+                                    Row(children: [
+                                      Icon(Icons.calendar_today_outlined, size: 14, color: dateStyle?.color),
+                                      const SizedBox(width: 4.0),
+                                      Text(DateFormat.yMMMd().format(task.startDate!), style: dateStyle),
+                                    ]),
+                                  
+                                  if (task.startDate != null && task.dueDate != null)
+                                    const SizedBox(width: 8.0),
+
+                                  if (task.dueDate != null)
+                                    Row(children: [
+                                      Icon(Icons.flag_outlined, size: 14, color: dateStyle?.color),
+                                      const SizedBox(width: 4.0),
+                                      Text(DateFormat.yMMMd().format(task.dueDate!), style: dateStyle),
+                                    ]),
+                                ],
+                              ),
+                            ),
+                          if (task.children.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${(progress * 100).toInt()}% Complete',
+                                    style: theme.textTheme.labelSmall,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  LinearProgressIndicator(
+                                    value: progress,
+                                    backgroundColor: Colors.grey.shade300,
+                                    valueColor: AlwaysStoppedAnimation<Color>(stripColor),
+                                    minHeight: 5,
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (task.children.isNotEmpty)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: Icon(isExpanded ? Icons.arrow_drop_down : Icons.arrow_right, size: 24),
+                            onPressed: () => controller.toggleTaskExpansion(task.id),
+                          ),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert, size: 20),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                showEditDialog(task: task);
+                                break;
+                              case 'hibernate':
+                                controller.toggleHibernate(task.id, !task.isHibernated);
+                                break;
+                              case 'delete':
+                                controller.deleteTask(task.id);
+                                break;
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Edit')]),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'hibernate',
+                              child: Row(children: [Icon(task.isHibernated ? Icons.bedtime : Icons.bedtime_outlined, size: 20), const SizedBox(width: 8), Text(task.isHibernated ? 'Wake Up' : 'Hibernate')]),
+                            ),
+                            const PopupMenuDivider(),
+                            PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(children: [Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error), const SizedBox(width: 8), Text('Delete', style: TextStyle(color: theme.colorScheme.error))]),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 20),
-                        onPressed: () => showEditDialog(task: task),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, size: 20),
-                        onPressed: () => controller.deleteTask(task.id),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                            task.isHibernated
-                                ? Icons.bedtime
-                                : Icons.bedtime_outlined,
-                            size: 20),
-                        onPressed: () => controller.toggleHibernate(
-                            task.id, !task.isHibernated),
-                      ),
-                      if (task.children.isNotEmpty)
-                        IconButton(
-                          icon: Icon(
-                              isExpanded
-                                  ? Icons.arrow_drop_down
-                                  : Icons.arrow_right,
-                              size: 24),
-                          onPressed: () =>
-                              controller.toggleTaskExpansion(task.id),
-                        ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: 50,
-              child: Container(
-                color: stripColor,
-                child: Center(
-                    child: _getIconForStatus(task.taskStatus, onStripColor)),
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 42,
+                child: Container(
+                  color: stripColor,
+                  child: Center(child: _getIconForStatus(task.taskStatus, onStripColor)),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
