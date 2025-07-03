@@ -1,157 +1,190 @@
 import 'package:flutter/material.dart';
-import 'package:looninary/core/theme/app_colors.dart';
+import 'package:looninary/core/theme/theme_provider.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  final AuthController _authController = AuthController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  final _currentPasswordController = TextEditingController();
-
-  bool _passwordEditAllowed = false;
-
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      print('Could not launch $url');
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final authController = AuthController();
+
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       children: [
-        _buildSettingsCard(
-          title: 'Change Email',
-          icon: Icons.email,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'New Email',
-                  hintText: 'Enter your new email address',
-                ),
-                keyboardType: TextInputType.emailAddress,
+        // --- GENERAL SETTINGS ---
+        _SettingsHeader(title: 'General'),
+        _SettingsCard(
+          children: [
+            // Theme Toggle
+            Consumer<ThemeProvider>(
+              builder: (context, themeProvider, child) {
+                return _SettingsTile(
+                  icon: themeProvider.themeMode == ThemeMode.dark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  title: 'Dark Mode',
+                  trailing: Switch(
+                    value: themeProvider.themeMode == ThemeMode.dark,
+                    onChanged: (value) {
+                      Provider.of<ThemeProvider>(context, listen: false)
+                          .toggleTheme();
+                    },
+                  ),
+                );
+              },
+            ),
+            const Divider(height: 1),
+            // Language (Placeholder)
+            _SettingsTile(
+              icon: Icons.language_outlined,
+              title: 'Language',
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'English',
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_ios, size: 16),
+                ],
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  if (_emailController.text.isNotEmpty) {
-                    _authController.updateUserEmail(
-                      context,
-                      _emailController.text.trim(),
-                    );
-                    _emailController.clear();
-                  }
-                },
-                child: const Text('Update Email'),
-              ),
-            ],
-          ),
+              onTap: () {
+                // Non-functional for now
+              },
+            ),
+          ],
         ),
-        const SizedBox(height: 20),
-        _buildSettingsCard(
-          title: 'Change Password',
-          icon: Icons.lock,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _currentPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Current password',
-                  hintText: 'Enter current password',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _passwordEditAllowed = value.isNotEmpty;
-                  });
-                },
 
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                enabled: _passwordEditAllowed,
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'New Password',
-                  hintText: 'Enter your new password',
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _passwordEditAllowed && _passwordController.text.isNotEmpty
-                    ? () {
-                        // Gửi cả mật khẩu cũ và mới cho controller xử lý
-                        _authController.updateUserPassword(
-                          context,
-                          _passwordController.text.trim(),
-                          currentPassword: _currentPasswordController.text.trim(),
-                        );
-                        _passwordController.clear();
-                        _currentPasswordController.clear();
-                        setState(() {
-                          _passwordEditAllowed = false;
-                        });
-                      }
-                    : null,
+        const SizedBox(height: 24),
 
-                child: const Text('Update Password'),
-              ),
-            ],
-          ),
+        // --- ACCOUNT SETTINGS ---
+        _SettingsHeader(title: 'Account'),
+        _SettingsCard(
+          children: [
+            // Account Information (Placeholder)
+            _SettingsTile(
+              icon: Icons.person_outline,
+              title: 'Account Information',
+              onTap: () {
+                // Non-functional for now
+              },
+            ),
+            const Divider(height: 1),
+            // Log Out
+            _SettingsTile(
+              icon: Icons.logout,
+              iconColor: theme.colorScheme.error,
+              title: 'Log Out',
+              textColor: theme.colorScheme.error,
+              onTap: () {
+                authController.signOut(context);
+              },
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // --- ABOUT SECTION ---
+        _SettingsHeader(title: 'About'),
+        _SettingsCard(
+          children: [
+            _SettingsTile(
+              icon: Icons.code_outlined,
+              title: 'Source Code',
+              onTap: () {
+                // REMINDER: Replace with your actual GitHub repository URL
+								_launchURL('https://github.com/falwyn/looninary');
+              },
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-Widget _buildSettingsCard({
-  required String title,
-  required IconData icon,
-  required Widget child,
-}) {
-  return Card(
-    elevation: 2,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: AppColors.sapphire),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.sapphire,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          child,
-        ],
+// Helper widget for section headers (e.g., "General", "Account")
+class _SettingsHeader extends StatelessWidget {
+  final String title;
+  const _SettingsHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
       ),
-    ),
-  );
+    );
+  }
+}
+
+// Helper widget for the card background
+class _SettingsCard extends StatelessWidget {
+  final List<Widget> children;
+  const _SettingsCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: children,
+      ),
+    );
+  }
+}
+
+// Helper widget for a consistent ListTile style
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Color? iconColor;
+  final Color? textColor;
+
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    this.trailing,
+    this.onTap,
+    this.iconColor,
+    this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: iconColor),
+      title: Text(title, style: TextStyle(color: textColor)),
+      trailing: trailing ??
+          (onTap != null
+              ? const Icon(Icons.arrow_forward_ios, size: 16)
+              : null),
+      onTap: onTap,
+    );
+  }
 }

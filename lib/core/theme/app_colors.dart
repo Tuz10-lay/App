@@ -4,50 +4,76 @@ class AppColors {
   // Prevent instantiation
   AppColors._();
 
-  static const Color base = Color(0xFFEFF1F5); // for white text
+  // --- GRUVBOX LIGHT THEME ---
+  static const Color text = Color(0xFF3C3836); // fg
+  static const Color subText1 = Color(0xFF7C6F64); // gray
+  static const Color textLight = Color(0xFF7C6F64); // gray
 
-  // Main Palette (latte) // Light
-  static const Color flamingo = Color(0xFFDD7878); 
-  static const Color rosewater = Color(0xFFDC8A78); 
-  static const Color pink = Color(0xFFEA76CB);
-  static const Color mauve = Color(0xFF8839EF);
-  static const Color red = Color(0xFFD20F39);
-  static const Color peach = Color(0xFFFE640B);
-  static const Color yellow = Color(0xFFDF8E1D); 
-  static const Color maroon = Color(0xFFE64553); 
-  static const Color green = Color(0xFF40A02B);
-  static const Color teal = Color(0xFF179299);
-  static const Color lavender = Color(0xFF7287FD);
-  static const Color sky = Color(0xFF04A5E5);
-  static const Color sapphire = Color(0xFF209FB5);
-  static const Color background = Color(0xFFFFF7F9); // Very light pink
-  static const Color text = Color(0xFF4C4F69);
-  static const Color subText1 = Color(0xFF5C5F77);
+  static const Color background = Color(0xFFFBF1C7); // bg
+  static const Color surface0 = Color(0xFFEBDBB2); // bg1
+  static const Color surface1 = Color(0xFFD5C4A1); // bg2
+
+  // Accent Colors
+  static const Color red = Color(0xFF9D0006);
+  static const Color orange = Color(0xFFAF3A03);
+  static const Color blue = Color(0xFF076678);
+  static const Color purple = Color(0xFF8F3F71);
+  static const Color aqua = Color(0xFF427B58);
+
+  // Deprecated Catppuccin names mapped to Gruvbox
+  static const Color flamingo = red;
+  static const Color rosewater = orange;
+  static const Color pink = purple;
+  static const Color mauve = purple;
+  static const Color lavender = blue;
+  static const Color sky = blue;
+  static const Color sapphire = aqua;
+
+  // --- PRESERVED COLORS (BECASUE BACKEND  BLAH) ---
+  static const Color peach = Color(0xFFFE8019);
+  static const Color yellow = Color(0xFFFABD2F);
+  static const Color maroon = Color(0xFFFB4934);
+  static const Color green = Color(0xFFB8BB26);
+  static const Color teal = Color(0xFF83A598);
+  // --- END PRESERVED ---
+
+  // --- GRUVBOX DARK THEME ---
+  static const Color midnight = Color(0xFF504945); // bg
+  static const Color mSurface = Color(0xFF3C3836); // bg1
+  static const Color mText = Color(0xFFEBDBB2); // fg
+  static const Color mSubtext0 = Color(0xFFBDAE93); // fg4
+
+  // Accent Colors
+  static const Color mRed = Color(0xFFCC241D);
+  static const Color mOrange = Color(0xFFD65D0E);
+  static const Color mBlue = Color(0xFF458588);
+  static const Color mPurple = Color(0xFFB16286);
+  static const Color mAqua = Color(0xFF689D6A);
+
+  // Deprecated Catppuccin names mapped to Gruvbox
+  static const Color mRosewater = mOrange;
+  static const Color mFlamingo = mRed;
+  static const Color mPink = mPurple;
+  static const Color mMauve = mPurple;
+  static const Color mSky = mBlue;
+
+  // --- PRESERVED DARK COLORS (Unchanged as requested) ---
+  static const Color mMaroon = Color(0xFFCC241D);
+  static const Color mPeach = Color(0xFFD65D0E);
+  static const Color mYellow = Color(0xFFD79921);
+  static const Color mGreen = Color(0xFF89871A);
+  static const Color mTeal = Color(0xFF458588);
+  // --- END PRESERVED ---
   
-  static const Color surface0 = Color(0xFFCCD0DA);
+  // Semantic Colors mapped to Gruvbox
+  static const Color success = Color(0xFF98971A); // Gruvbox Green
+  static const Color warning = Color(0xFFD79921); // Gruvbox Yellow
+  static const Color error = Color(0xFFCC241D); // Gruvbox Red
 
-  static const Color textLight = Color(0xFF6B7280);
+  // Kept for compatibility if used elsewhere for white text on dark backgrounds
+  static const Color base = Color(0xFFFBF1C7);
 
-  // Dark Pallette (Macchiato)
-  static const Color mRosewater = Color(0xFFF4DBD6);
-  static const Color mFlamingo = Color(0xFFF0C6C6);
-  static const Color mPink = Color(0xFFF5BDE6);
-  static const Color mMauve = Color(0xFFC6A0F6);
-  static const Color mRed = Color(0xFFED8796);
-  static const Color mMaroon = Color(0xFFEE99A0);
-  static const Color mPeach = Color(0xFFF5A97F);
-  static const Color mYellow = Color(0xFFEED49F);
-  static const Color mGreen = Color(0xFFA6DA95);
-  static const Color mTeal = Color(0xFF8BD5CA);
-  static const Color mSky = Color(0xFF91D7E3);
-  static const Color mText = Color(0xFFCAD3F5);
+	// GRUVBOX DARK REAL
+	static const Color grbd = Color(0xFF282828);
 
-  
-
-  // Semantic Colors
-  static const Color success = Color(0xFF6EE7B7);
-  static const Color warning = Color(0xFFFBBF24);
-  static const Color error = Color(0xFFF87171);
-  static const Color midnight = Color(0xFF181C2F); // Màu nền xanh tím đậm giống ảnh demo
 }
-

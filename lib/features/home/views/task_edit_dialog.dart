@@ -1,198 +1,220 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart'; // Import the intl package for formatting
 import 'package:looninary/core/models/task_model.dart';
-import 'package:looninary/core/theme/app_colors.dart';
 
 class TaskEditDialog extends StatefulWidget {
   final Task? task;
+  final List<Task>? allTasks;
 
-  const TaskEditDialog({super.key, this.task});
+  const TaskEditDialog({
+    super.key,
+    this.task,
+    this.allTasks,
+  });
 
   @override
-  _TaskEditDialogState createState() => _TaskEditDialogState();
+  State<TaskEditDialog> createState() => _TaskEditDialogState();
 }
 
 class _TaskEditDialogState extends State<TaskEditDialog> {
   final _formKey = GlobalKey<FormState>();
-  late String _title;
-  late String? _content;
-  late TaskPriority _priority;
-  late ItemColor _color;
-  late DateTime? _startDate;
-  late DateTime? _dueDate;
-  // --- NEW STATE VARIABLES for Time ---
-  late TimeOfDay? _startTime;
-  late TimeOfDay? _endTime;
-
+  late TextEditingController _titleController;
+  late TextEditingController _contentController;
+  String? _selectedParentId;
+  ItemColor _selectedColor = ItemColor.teal;
+  TaskStatus _selectedStatus = TaskStatus.notStarted;
+  DateTime? _selectedStartDate;
+  DateTime? _selectedDueDate;
 
   @override
   void initState() {
     super.initState();
-    _title = widget.task?.title ?? '';
-    _content = widget.task?.content ?? '';
-    _priority = widget.task?.taskPriority ?? TaskPriority.medium;
-    _color = widget.task?.color ?? ItemColor.teal;
-
-    // Initialize Dates
-    _startDate = widget.task?.startDate ?? DateTime.now();
-    _dueDate = widget.task?.dueDate;
-
-    // --- INITIALIZE Time from the DateTime objects ---
-    _startTime = widget.task?.startDate != null ? TimeOfDay.fromDateTime(widget.task!.startDate!) : TimeOfDay.now();
-    _endTime = widget.task?.dueDate != null ? TimeOfDay.fromDateTime(widget.task!.dueDate!) : null;
+    _titleController = TextEditingController(text: widget.task?.title ?? '');
+    _contentController = TextEditingController(text: widget.task?.content ?? '');
+    _selectedParentId = widget.task?.parentId;
+    _selectedColor = widget.task?.color ?? ItemColor.teal;
+    _selectedStatus = widget.task?.taskStatus ?? TaskStatus.notStarted;
+    _selectedStartDate = widget.task?.startDate;
+    _selectedDueDate = widget.task?.dueDate;
   }
 
-  // --- NEW HELPER for picking time ---
-  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
-    final initialTime = isStartTime 
-      ? (_startTime ?? TimeOfDay.now()) 
-      : (_endTime ?? _startTime ?? TimeOfDay.now());
-
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-
-    if (pickedTime != null) {
-      setState(() {
-        if (isStartTime) {
-          _startTime = pickedTime;
-        } else {
-          _endTime = pickedTime;
-        }
-      });
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final initialDate = isStartDate ? (_startDate ?? DateTime.now()) : (_dueDate ?? _startDate ?? DateTime.now());
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = pickedDate;
-        } else {
-          _dueDate = pickedDate;
-        }
-      });
-    }
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
   }
 
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
-      // --- UPDATED SAVE LOGIC to combine Date and Time ---
-      DateTime? finalStartDate;
-      if (_startDate != null && _startTime != null) {
-        finalStartDate = DateTime(_startDate!.year, _startDate!.month, _startDate!.day, _startTime!.hour, _startTime!.minute);
-      }
-
-      DateTime? finalDueDate;
-      if (_dueDate != null && _endTime != null) {
-        finalDueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day, _endTime!.hour, _endTime!.minute);
-      }
-
-
       final result = {
-        'title': _title,
-        'content': _content,
-        'priority': _priority.toDbValue(),
-        'color': _color.name,
-        'start_date': finalStartDate?.toIso8601String(),
-        'due_date': finalDueDate?.toIso8601String(),
-        'status': widget.task?.taskStatus.toDbValue() ?? 'Not Started',
+        'title': _titleController.text,
+        'content': _contentController.text,
+        'parent_id': _selectedParentId,
+        'color': _selectedColor.name,
+        'status': _selectedStatus.toDbValue(),
+        'start_date': _selectedStartDate?.toIso8601String(),
+        'due_date': _selectedDueDate?.toIso8601String(),
       };
+      result.removeWhere((key, value) => value == null && key != 'parent_id');
       Navigator.of(context).pop(result);
     }
+  }
+  
+  // --- FIXED: Combined Date and Time Picker Logic ---
+  Future<void> _pickDateTime(BuildContext context, {required bool isStartDate}) async {
+    final initialDate = (isStartDate ? _selectedStartDate : _selectedDueDate) ?? DateTime.now();
+
+    // 1. Pick the Date
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+
+    if (pickedDate == null) return; // User canceled the date picker
+
+    // 2. Pick the Time
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDate),
+    );
+
+    if (pickedTime == null) return; // User canceled the time picker
+
+    // 3. Combine Date and Time
+    final finalDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+    
+    setState(() {
+      if (isStartDate) {
+        _selectedStartDate = finalDateTime;
+      } else {
+        _selectedDueDate = finalDateTime;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Helper for formatting the date and time text on the buttons
+    String formatDateTime(DateTime? dt) {
+        if (dt == null) return '';
+        // e.g., "Jul 3, 2025, 6:30 PM"
+        return DateFormat.yMd().add_jm().format(dt);
+    }
+
     return AlertDialog(
-      title: Text(widget.task == null ? 'Add Task' : 'Edit Task'),
+      title: Text(widget.task == null ? 'New Task' : 'Edit Task'),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
+              // ... (Title, Content, Parent Task, Status, Color Dropdowns remain the same)
               TextFormField(
-                initialValue: _title,
+                controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Title'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a title' : null,
-                onSaved: (value) => _title = value!,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                initialValue: _content,
-                decoration: const InputDecoration(labelText: 'Content (Optional)'),
+                controller: _contentController,
+                decoration: const InputDecoration(labelText: 'Content (optional)'),
                 maxLines: 3,
-                onSaved: (value) => _content = value,
-              ),
-              const SizedBox(height: 20),
-
-              // --- UPDATED UI with Time Pickers ---
-              Text("From", style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: _buildDatePickerField(context, 'Start Date', _startDate, true)),
-                  const SizedBox(width: 12),
-                  SizedBox(width: 120, child: _buildTimePickerField(context, 'Start Time', _startTime, true)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text("To", style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: _buildDatePickerField(context, 'Due Date', _dueDate, false)),
-                  const SizedBox(width: 12),
-                  SizedBox(width: 120, child: _buildTimePickerField(context, 'End Time', _endTime, false)),
-                ],
               ),
               const SizedBox(height: 16),
-              
+              DropdownButtonFormField<String?>(
+                value: _selectedParentId,
+                hint: const Text('No parent task'),
+                decoration: const InputDecoration(labelText: 'Parent Task'),
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text('None'),
+                  ),
+                  if (widget.allTasks != null)
+                    ...widget.allTasks!
+                        .where((t) => t.id != widget.task?.id)
+                        .map((task) => DropdownMenuItem(
+                              value: task.id,
+                              child: Text(task.title),
+                            )),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedParentId = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<TaskPriority>(
-                      value: _priority,
-                      decoration: const InputDecoration(labelText: 'Priority'),
-                      items: TaskPriority.values
-                          .map((priority) => DropdownMenuItem(
-                                value: priority,
-                                child: Text(priority.toDbValue()),
-                              ))
-                          .toList(),
+                    child: DropdownButtonFormField<TaskStatus>(
+                      value: _selectedStatus,
+                      decoration: const InputDecoration(labelText: 'Status'),
+                      items: TaskStatus.values.map((status) => DropdownMenuItem(
+                        value: status,
+                        child: Text(status.toDbValue()),
+                      )).toList(),
                       onChanged: (value) {
-                        if (value != null) setState(() => _priority = value);
+                        if (value != null) setState(() => _selectedStatus = value);
                       },
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<ItemColor>(
-                      value: _color,
+                      value: _selectedColor,
                       decoration: const InputDecoration(labelText: 'Color'),
-                      items: ItemColor.values
-                          .map((color) => DropdownMenuItem(
-                                value: color,
-                                child: Text(color.name),
-                              ))
-                          .toList(),
+                      items: ItemColor.values.map((color) => DropdownMenuItem(
+                        value: color,
+                        child: Row(
+                          children: [
+                            Icon(Icons.circle, color: color.toColor(context), size: 16),
+                            const SizedBox(width: 8),
+                            Text(color.name),
+                          ],
+                        ),
+                      )).toList(),
                       onChanged: (value) {
-                        if (value != null) setState(() => _color = value);
+                        if (value != null) setState(() => _selectedColor = value);
                       },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // --- FIXED: Date/Time buttons ---
+              Row(
+                children: [
+                   Expanded(
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.calendar_today),
+                      label: Text(_selectedStartDate == null ? 'Start Date' : formatDateTime(_selectedStartDate)),
+                      onPressed: () => _pickDateTime(context, isStartDate: true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.flag),
+                      label: Text(_selectedDueDate == null ? 'Due Date' : formatDateTime(_selectedDueDate)),
+                       onPressed: () => _pickDateTime(context, isStartDate: false),
                     ),
                   ),
                 ],
@@ -201,40 +223,16 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
           ),
         ),
       ),
-      actions: [
+      actions: <Widget>[
         TextButton(
           child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        ElevatedButton(onPressed: _saveForm, child: const Text('Save')),
+        ElevatedButton(
+          child: const Text('Save'),
+          onPressed: _saveForm,
+        ),
       ],
-    );
-  }
-
-  Widget _buildDatePickerField(BuildContext context, String label, DateTime? date, bool isStartDate) {
-    return InkWell(
-      onTap: () => _selectDate(context, isStartDate),
-      child: InputDecorator(
-        decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-        child: Text(
-          date != null ? DateFormat.yMMMd().format(date) : 'Not set',
-          style: TextStyle(color: date != null ? null : Colors.grey),
-        ),
-      ),
-    );
-  }
-
-  // --- NEW HELPER WIDGET for creating time fields ---
-  Widget _buildTimePickerField(BuildContext context, String label, TimeOfDay? time, bool isStartTime) {
-    return InkWell(
-      onTap: () => _selectTime(context, isStartTime),
-      child: InputDecorator(
-        decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-        child: Text(
-          time != null ? time.format(context) : 'Not set',
-          style: TextStyle(color: time != null ? null : Colors.grey),
-        ),
-      ),
     );
   }
 }

@@ -67,6 +67,7 @@
     GREET = "devenv";
     CHROME_EXECUTABLE = lib.getExe pkgs.google-chrome; # this solve the chrome executable problem
     # JAVA_HOME = lib.mkForce "${pkgs.jdk21}/lib/openjdk";
+    FLUTTER_WEB_BROWSER = "firefox";
     
   };
 
