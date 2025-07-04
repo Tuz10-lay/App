@@ -3,6 +3,64 @@ import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:looninary/core/theme/app_colors.dart';
 import 'package:looninary/core/widgets/app_snack_bar.dart';
 
+// --- Language enum & Text Map ---
+enum AppLanguage { en, vi }
+
+final Map<String, Map<AppLanguage, String>> localizedText = {
+  'createAccount': {
+    AppLanguage.en: 'Create Account',
+    AppLanguage.vi: 'Tạo Tài Khoản',
+  },
+  'email': {
+    AppLanguage.en: 'Email',
+    AppLanguage.vi: 'Email',
+  },
+  'password': {
+    AppLanguage.en: 'Password',
+    AppLanguage.vi: 'Mật khẩu',
+  },
+  'confirmPassword': {
+    AppLanguage.en: 'Confirm Password',
+    AppLanguage.vi: 'Nhập lại mật khẩu',
+  },
+  'register': {
+    AppLanguage.en: 'Register',
+    AppLanguage.vi: 'Đăng ký',
+  },
+  'alreadyHaveAccount': {
+    AppLanguage.en: 'Already have an account?',
+    AppLanguage.vi: 'Đã có tài khoản?',
+  },
+  'signIn': {
+    AppLanguage.en: 'Sign in',
+    AppLanguage.vi: 'Đăng nhập',
+  },
+  'emptyEmail': {
+    AppLanguage.en: 'Email cannot be empty',
+    AppLanguage.vi: 'Không được để trống email',
+  },
+  'emptyPassword': {
+    AppLanguage.en: 'Password cannot be empty',
+    AppLanguage.vi: 'Không được để trống mật khẩu',
+  },
+  'emptyConfirm': {
+    AppLanguage.en: 'Confirm Password cannot be empty',
+    AppLanguage.vi: 'Không được để trống xác thực mật khẩu',
+  },
+  'notMatch': {
+    AppLanguage.en: 'Passwords do not match',
+    AppLanguage.vi: 'Mật khẩu không khớp',
+  },
+  'languageSwitchedEn': {
+    AppLanguage.en: 'Language switched to English',
+    AppLanguage.vi: 'Đã chuyển sang tiếng Anh',
+  },
+  'languageSwitchedVi': {
+    AppLanguage.en: 'Language switched to Vietnamese',
+    AppLanguage.vi: 'Đã chuyển sang tiếng Việt',
+  },
+};
+
 class RegisterScreen extends StatefulWidget {
   final VoidCallback? onShowLogin;
   const RegisterScreen({super.key, this.onShowLogin});
@@ -17,6 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isObscure = true;
+  AppLanguage _currentLanguage = AppLanguage.en;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -56,9 +115,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'Create Account',
-                        style: TextStyle(
+                      // Nút chuyển ngôn ngữ
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.language, color: Colors.white),
+                            onPressed: () {
+                              setState(() {
+                                _currentLanguage = _currentLanguage == AppLanguage.en
+                                    ? AppLanguage.vi
+                                    : AppLanguage.en;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    _currentLanguage == AppLanguage.en
+                                        ? localizedText['languageSwitchedEn']![AppLanguage.en]!
+                                        : localizedText['languageSwitchedVi']![AppLanguage.vi]!,
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      Text(
+                        localizedText['createAccount']![_currentLanguage]!,
+                        style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -69,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          labelText: 'Email',
+                          labelText: localizedText['email']![_currentLanguage]!,
                           labelStyle: const TextStyle(color: Colors.white70),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -92,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _passwordController,
                         obscureText: _isObscure,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: localizedText['password']![_currentLanguage]!,
                           labelStyle: const TextStyle(color: Colors.white70),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -122,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _confirmPasswordController,
                         obscureText: _isObscure,
                         decoration: InputDecoration(
-                          labelText: 'Confirm Password',
+                          labelText: localizedText['confirmPassword']![_currentLanguage]!,
                           labelStyle: const TextStyle(color: Colors.white70),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -151,19 +236,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ElevatedButton(
                         onPressed: () async {
                           if (_emailController.text.isEmpty) {
-                            showAppSnackBar(context, 'Email cannot be empty', SnackBarType.failure);
+                            showAppSnackBar(
+                              context,
+                              localizedText['emptyEmail']![_currentLanguage]!,
+                              SnackBarType.failure,
+                            );
                             return;
                           }
                           if (_passwordController.text.isEmpty) {
-                            showAppSnackBar(context, 'Password cannot be empty', SnackBarType.failure);
+                            showAppSnackBar(
+                              context,
+                              localizedText['emptyPassword']![_currentLanguage]!,
+                              SnackBarType.failure,
+                            );
                             return;
                           }
                           if (_confirmPasswordController.text.isEmpty) {
-                            showAppSnackBar(context, 'Confirm Password cannot be empty', SnackBarType.failure);
+                            showAppSnackBar(
+                              context,
+                              localizedText['emptyConfirm']![_currentLanguage]!,
+                              SnackBarType.failure,
+                            );
                             return;
                           }
                           if (_passwordController.text != _confirmPasswordController.text) {
-                            showAppSnackBar(context, 'Passwords do not match', SnackBarType.failure);
+                            showAppSnackBar(
+                              context,
+                              localizedText['notMatch']![_currentLanguage]!,
+                              SnackBarType.failure,
+                            );
                             return;
                           }
                           await _authController.register(
@@ -178,17 +279,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                        child: Text(
+                          localizedText['register']![_currentLanguage]!,
+                          style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Center(
                         child: TextButton(
                           style: ButtonStyle(
-                            overlayColor: WidgetStateProperty.all(AppColors.mauve.withOpacity(0.1)),
-                            foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                            overlayColor: WidgetStateProperty.all(
+                                AppColors.mauve.withOpacity(0.1)),
+                            foregroundColor:
+                                WidgetStateProperty.resolveWith<Color>(
                               (Set<WidgetState> states) {
                                 if (states.contains(WidgetState.pressed)) {
                                   return AppColors.mauve;
@@ -204,11 +310,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           },
                           child: RichText(
                             text: TextSpan(
-                              text: 'Already have an account? ',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w400),
+                              text:
+                                  localizedText['alreadyHaveAccount']![_currentLanguage]! +
+                                      ' ',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w400),
                               children: [
                                 TextSpan(
-                                  text: 'Sign in',
+                                  text:
+                                      localizedText['signIn']![_currentLanguage]!,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,

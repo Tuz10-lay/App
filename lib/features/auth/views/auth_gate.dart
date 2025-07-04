@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:looninary/core/utils/language_provider.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -65,8 +67,8 @@ class _AuthGateState extends State<AuthGate> {
         final AuthState? authState = snapshot.data;
         // If the user has a session, they are logged in
         if (authState != null && authState.session != null) {
-          // Show the HomePage if logged in
-          return HomePage();
+          final lang = Provider.of<LanguageProvider>(context).language;
+          return HomePage(initialLanguage: lang);
         } else {
           // Quản lý điều hướng auth tập trung tại đây
           switch (_currentScreen) {

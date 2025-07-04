@@ -3,6 +3,55 @@ import 'package:looninary/core/widgets/social_icon_button.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:looninary/core/theme/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:looninary/features/home/views/home_page.dart';
+import 'package:provider/provider.dart';
+import 'package:looninary/core/utils/language_provider.dart';
+
+// --- Language enum & Text Map ---
+enum AppLanguage { en, vi }
+
+final Map<String, Map<AppLanguage, String>> localizedText = {
+  'signIn': {
+    AppLanguage.en: 'Sign in',
+    AppLanguage.vi: 'Đăng nhập',
+  },
+  'signInWithSocial': {
+    AppLanguage.en: 'Sign in with a social account',
+    AppLanguage.vi: 'Đăng nhập bằng tài khoản mạng xã hội',
+  },
+  'email': {
+    AppLanguage.en: 'Email',
+    AppLanguage.vi: 'Email',
+  },
+  'password': {
+    AppLanguage.en: 'Password',
+    AppLanguage.vi: 'Mật khẩu',
+  },
+  'forgotPassword': {
+    AppLanguage.en: 'Forgot password?',
+    AppLanguage.vi: 'Quên mật khẩu?',
+  },
+  'signUp': {
+    AppLanguage.en: 'Sign up',
+    AppLanguage.vi: 'Đăng ký',
+  },
+  'useWithoutSigningIn': {
+    AppLanguage.en: 'Use without signing in',
+    AppLanguage.vi: 'Dùng mà không cần đăng nhập',
+  },
+  'dontHaveAccount': {
+    AppLanguage.en: "Don't have an account?",
+    AppLanguage.vi: "Chưa có tài khoản?",
+  },
+  'languageSwitchedEn': {
+    AppLanguage.en: 'Language switched to English',
+    AppLanguage.vi: 'Đã chuyển sang tiếng Anh',
+  },
+  'languageSwitchedVi': {
+    AppLanguage.en: 'Language switched to Vietnamese',
+    AppLanguage.vi: 'Đã chuyển sang tiếng Việt',
+  },
+};
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback? onShowRegister;
@@ -19,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isObscure = true;
+  AppLanguage _currentLanguage = AppLanguage.en;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -35,6 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -58,9 +110,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Nút chuyển ngôn ngữ
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.language, color: Colors.white),
+                            onPressed: () {
+                              setState(() {
+                                _currentLanguage = _currentLanguage == AppLanguage.en
+                                    ? AppLanguage.vi
+                                    : AppLanguage.en;
+                              });
+                              // Cập nhật Provider
+                              languageProvider.setLanguage(_currentLanguage == AppLanguage.en ? 'en' : 'vi');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    _currentLanguage == AppLanguage.en
+                                        ? localizedText['languageSwitchedEn']![AppLanguage.en]!
+                                        : localizedText['languageSwitchedVi']![AppLanguage.vi]!,
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 24),
                       Text(
-                        'Sign in',
+                        localizedText['signIn']![_currentLanguage]!,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -70,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Sign in with a social account',
+                        localizedText['signInWithSocial']![_currentLanguage]!,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -100,7 +180,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                           ),
-
                           const SizedBox(width: 12),
                           SocialIconButton(
                             iconPath: 'assets/icons/fb_logo.png',
@@ -121,7 +200,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                           ),
-
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -134,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _emailController,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Email',
+                            labelText: localizedText['email']![_currentLanguage]!,
                             labelStyle: const TextStyle(color: Colors.white70),
                             border: InputBorder.none,
                             prefixIcon: const Icon(Icons.email_rounded, color: Colors.white54),
@@ -153,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: const TextStyle(color: Colors.white),
                           obscureText: _isObscure,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: localizedText['password']![_currentLanguage]!,
                             labelStyle: const TextStyle(color: Colors.white70),
                             border: InputBorder.none,
                             prefixIcon: const Icon(Icons.lock, color: Colors.white54),
@@ -177,10 +255,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               widget.onShowForgotPassword!();
                             }
                           },
-
-                          child: const Text(
-                            'Forgot password?',
-                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                          child: Text(
+                            localizedText['forgotPassword']![_currentLanguage]!,
+                            style: const TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -193,12 +270,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(
                         height: 52,
                         child: ElevatedButton(
-                          onPressed: () {
-                            _authController.logIn(
+                          onPressed: () async {
+                            final success = await _authController.logIn(
                               context,
                               _emailController.text,
                               _passwordController.text,
                             );
+                            // Khi đăng nhập thành công
+                            if (success) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HomePage(
+                                    initialLanguage: languageProvider.language,
+                                  ),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.mauve,
@@ -207,14 +295,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             elevation: 0,
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Sign in',
-                                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                                localizedText['signIn']![_currentLanguage]!,
+                                style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
                               ),
-                              CircleAvatar(
+                              const CircleAvatar(
                                 backgroundColor: Colors.white,
                                 radius: 18,
                                 child: Icon(Icons.arrow_forward, color: AppColors.mauve),
@@ -237,9 +325,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'Use without signing in',
-                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+                          child: Text(
+                            localizedText['useWithoutSigningIn']![_currentLanguage]!,
+                            style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -251,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             foregroundColor: WidgetStateProperty.resolveWith<Color>(
                               (Set<WidgetState> states) {
                                 if (states.contains(WidgetState.pressed)) {
-                                  return AppColors.mauve; // Đậm hơn khi nhấn
+                                  return AppColors.mauve;
                                 }
                                 return AppColors.mauve;
                               },
@@ -264,14 +352,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           child: RichText(
                             text: TextSpan(
-                              text: "Don't have an account? ",
+                              text: localizedText['dontHaveAccount']![_currentLanguage]! + " ",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w400,
                               ),
                               children: [
                                 TextSpan(
-                                  text: 'Sign up',
+                                  text: localizedText['signUp']![_currentLanguage]!,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -279,7 +367,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ],
                             ),
-
                           ),
                         ),
                       ),

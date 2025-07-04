@@ -46,7 +46,7 @@ class AuthController {
     }
   }
 
-  Future<void> logIn(
+  Future<bool> logIn(
     BuildContext context,
     String email,
     String password,
@@ -55,21 +55,25 @@ class AuthController {
     try {
       final user = await _authService.logIn(email, password);
 
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
 
       if (user != null) {
         logger.i("Log in successfully for user with email: $email");
         showAppSnackBar(context, "Log in successfully", SnackBarType.success);
+        return true;
+      } else {
+        return false;
       }
     } on AuthException catch (e) {
       logger.e("Log in failed for user with email: $email, error: ${e.message}");
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
       showAppSnackBar(context, e.message, SnackBarType.failure);
     } catch (e) {
       logger.e("Unexpected error during login: $e");
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
       showAppSnackBar(context, "Log in failed, please try again", SnackBarType.failure);
     }
+    return false;
   }
 
   Future<void> signInAnonymously(BuildContext context) async {

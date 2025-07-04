@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:looninary/core/theme/app_theme.dart';
 import 'package:looninary/core/theme/theme_provider.dart';
+import 'package:looninary/core/utils/language_provider.dart';
 import 'package:looninary/features/auth/views/auth_gate.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,8 +20,11 @@ void main() async {
   // We wrap our app with ChangeNotifierProvider.
   // This makes the ThemeProvider instance available to the entire widget tree.
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => LanguageProvider()),
+      ],
       child: const MyApp(),
     ),
   );

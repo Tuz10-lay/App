@@ -3,10 +3,22 @@ import 'package:looninary/core/theme/theme_provider.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:looninary/core/widgets/app_snack_bar.dart';
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+class SettingsScreen extends StatefulWidget {
+  final String currentLanguage;
+  final Function(String) onLanguageChanged;
+  const SettingsScreen({
+    super.key,
+    required this.currentLanguage,
+    required this.onLanguageChanged,
+  });
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -14,16 +26,72 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _showLanguagePicker(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(widget.currentLanguage == 'en' ? 'Select Language' : 'Chọn ngôn ngữ'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.language),
+                title: const Text('English'),
+                onTap: () {
+                  widget.onLanguageChanged('en');
+                  Navigator.pop(context);
+                  showAppSnackBar(
+                    context,
+                    'Language changed to English',
+                    SnackBarType.success,
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.language),
+                title: const Text('Tiếng Việt'),
+                onTap: () {
+                  widget.onLanguageChanged('vi');
+                  Navigator.pop(context);
+                  showAppSnackBar(
+                    context,
+                    'Đã chuyển sang Tiếng Việt',
+                    SnackBarType.success,
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authController = AuthController();
 
+    final texts = {
+      'general': widget.currentLanguage == 'en' ? 'General' : 'Chung',
+      'darkMode': widget.currentLanguage == 'en' ? 'Dark Mode' : 'Chế độ tối',
+      'language': widget.currentLanguage == 'en' ? 'Language' : 'Ngôn ngữ',
+      'account': widget.currentLanguage == 'en' ? 'Account' : 'Tài khoản',
+      'accountInfo': widget.currentLanguage == 'en' ? 'Account Information' : 'Thông tin tài khoản',
+      'logout': widget.currentLanguage == 'en' ? 'Log Out' : 'Đăng xuất',
+      'about': widget.currentLanguage == 'en' ? 'About' : 'Về ứng dụng',
+      'sourceCode': widget.currentLanguage == 'en' ? 'Source Code' : 'Mã nguồn',
+      'english': 'English',
+      'vietnamese': 'Tiếng Việt',
+    };
+
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       children: [
         // --- GENERAL SETTINGS ---
-        _SettingsHeader(title: 'General'),
+        _SettingsHeader(title: texts['general']!),
         _SettingsCard(
           children: [
             // Theme Toggle
@@ -33,27 +101,36 @@ class SettingsScreen extends StatelessWidget {
                   icon: themeProvider.themeMode == ThemeMode.dark
                       ? Icons.dark_mode_outlined
                       : Icons.light_mode_outlined,
-                  title: 'Dark Mode',
+                  title: texts['darkMode']!,
                   trailing: Switch(
                     value: themeProvider.themeMode == ThemeMode.dark,
                     onChanged: (value) {
                       Provider.of<ThemeProvider>(context, listen: false)
                           .toggleTheme();
+                      showAppSnackBar(
+                        context,
+                        widget.currentLanguage == 'en'
+                            ? "Theme changed"
+                            : "Đã đổi chế độ hiển thị",
+                        SnackBarType.success,
+                      );
                     },
                   ),
                 );
               },
             ),
             const Divider(height: 1),
-            // Language (Placeholder)
+            // Language
             _SettingsTile(
               icon: Icons.language_outlined,
-              title: 'Language',
+              title: texts['language']!,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'English',
+                    widget.currentLanguage == 'en'
+                        ? texts['english']!
+                        : texts['vietnamese']!,
                     style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(width: 8),
@@ -61,7 +138,7 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
               onTap: () {
-                // Non-functional for now
+                _showLanguagePicker(context);
               },
             ),
           ],
@@ -70,15 +147,21 @@ class SettingsScreen extends StatelessWidget {
         const SizedBox(height: 24),
 
         // --- ACCOUNT SETTINGS ---
-        _SettingsHeader(title: 'Account'),
+        _SettingsHeader(title: texts['account']!),
         _SettingsCard(
           children: [
-            // Account Information (Placeholder)
+            // Account Information
             _SettingsTile(
               icon: Icons.person_outline,
-              title: 'Account Information',
+              title: texts['accountInfo']!,
               onTap: () {
-                // Non-functional for now
+                showAppSnackBar(
+                  context,
+                  widget.currentLanguage == 'en'
+                      ? "Feature coming soon!"
+                      : "Tính năng sẽ sớm ra mắt!",
+                  SnackBarType.pending,
+                );
               },
             ),
             const Divider(height: 1),
@@ -86,10 +169,11 @@ class SettingsScreen extends StatelessWidget {
             _SettingsTile(
               icon: Icons.logout,
               iconColor: theme.colorScheme.error,
-              title: 'Log Out',
+              title: texts['logout']!,
               textColor: theme.colorScheme.error,
               onTap: () {
                 authController.signOut(context);
+                // Thông báo sign out sẽ do AuthController xử lý
               },
             ),
           ],
@@ -98,15 +182,21 @@ class SettingsScreen extends StatelessWidget {
         const SizedBox(height: 24),
 
         // --- ABOUT SECTION ---
-        _SettingsHeader(title: 'About'),
+        _SettingsHeader(title: texts['about']!),
         _SettingsCard(
           children: [
             _SettingsTile(
               icon: Icons.code_outlined,
-              title: 'Source Code',
+              title: texts['sourceCode']!,
               onTap: () {
-                // REMINDER: Replace with your actual GitHub repository URL
-								_launchURL('https://github.com/falwyn/looninary');
+                _launchURL('https://github.com/falwyn/looninary');
+                showAppSnackBar(
+                  context,
+                  widget.currentLanguage == 'en'
+                      ? "Opening source code..."
+                      : "Đang mở mã nguồn...",
+                  SnackBarType.pending,
+                );
               },
             ),
           ],
@@ -116,7 +206,7 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// Helper widget for section headers (e.g., "General", "Account")
+// Helper widget for section headers
 class _SettingsHeader extends StatelessWidget {
   final String title;
   const _SettingsHeader({required this.title});

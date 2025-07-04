@@ -2,6 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:looninary/core/theme/app_colors.dart';
 
+// --- Language enum & Text Map ---
+enum AppLanguage { en, vi }
+
+final Map<String, Map<AppLanguage, String>> localizedText = {
+  'forgotPassword': {
+    AppLanguage.en: 'Forgot Password',
+    AppLanguage.vi: 'Quên mật khẩu',
+  },
+  'email': {
+    AppLanguage.en: 'Email',
+    AppLanguage.vi: 'Email',
+  },
+  'sendReset': {
+    AppLanguage.en: 'Send Password Reset Email',
+    AppLanguage.vi: 'Gửi email đặt lại mật khẩu',
+  },
+  'backToSignIn': {
+    AppLanguage.en: 'Back to Sign in',
+    AppLanguage.vi: 'Quay lại đăng nhập',
+  },
+  'languageSwitchedEn': {
+    AppLanguage.en: 'Language switched to English',
+    AppLanguage.vi: 'Đã chuyển sang tiếng Anh',
+  },
+  'languageSwitchedVi': {
+    AppLanguage.en: 'Language switched to Vietnamese',
+    AppLanguage.vi: 'Đã chuyển sang tiếng Việt',
+  },
+};
+
 class ForgotPasswordScreen extends StatefulWidget {
   final VoidCallback? onShowLogin;
   const ForgotPasswordScreen({super.key, this.onShowLogin});
@@ -13,6 +43,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final AuthController _authController = AuthController();
   final TextEditingController _emailController = TextEditingController();
+  AppLanguage _currentLanguage = AppLanguage.en;
 
   @override
   void dispose() {
@@ -44,9 +75,35 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'Forgot Password',
-                        style: TextStyle(
+                      // Nút chuyển ngôn ngữ
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.language, color: Colors.white),
+                            onPressed: () {
+                              setState(() {
+                                _currentLanguage = _currentLanguage == AppLanguage.en
+                                    ? AppLanguage.vi
+                                    : AppLanguage.en;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    _currentLanguage == AppLanguage.en
+                                        ? localizedText['languageSwitchedEn']![AppLanguage.en]!
+                                        : localizedText['languageSwitchedVi']![AppLanguage.vi]!,
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      Text(
+                        localizedText['forgotPassword']![_currentLanguage]!,
+                        style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
@@ -56,17 +113,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(color: Colors.white70),
-                          border: OutlineInputBorder(
+                          labelText: localizedText['email']![_currentLanguage]!,
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          border: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(16)),
                           ),
-                          enabledBorder: OutlineInputBorder(
+                          enabledBorder: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(16)),
                             borderSide:
                                 BorderSide(color: Colors.white70, width: 1.0),
                           ),
-                          focusedBorder: OutlineInputBorder(
+                          focusedBorder: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(16)),
                             borderSide:
                                 BorderSide(color: Colors.white70, width: 2.0),
@@ -88,20 +145,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          'Send Password Reset Email',
-                          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                        child: Text(
+                          localizedText['sendReset']![_currentLanguage]!,
+                          style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 24.0),
                           child: TextButton(
                             style: ButtonStyle(
-                              padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24.0, vertical: 0)),
-                              overlayColor: WidgetStateProperty.all(AppColors.mauve.withOpacity(0.1)),
-                              foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                              padding: WidgetStateProperty.all(
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 24.0, vertical: 0)),
+                              overlayColor: WidgetStateProperty.all(
+                                  AppColors.mauve.withOpacity(0.1)),
+                              foregroundColor:
+                                  WidgetStateProperty.resolveWith<Color>(
                                 (Set<WidgetState> states) {
                                   if (states.contains(WidgetState.pressed)) {
                                     return AppColors.mauve;
@@ -115,9 +180,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 widget.onShowLogin!();
                               }
                             },
-                            child: const Text(
-                              'Back to Sign in',
-                              style: TextStyle(
+                            child: Text(
+                              localizedText['backToSignIn']![_currentLanguage]!,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w500,
                               ),
