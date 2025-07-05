@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:looninary/core/models/task_model.dart';
 
-class TaskEditDialog extends StatefulWidget {
+class TaskEditScreen extends StatefulWidget {
   final Task? task;
   final List<Task>? allTasks;
   final String currentLanguage;
 
-  const TaskEditDialog({
-    super.key,
+  const TaskEditScreen({
+    Key? key,
     this.task,
     this.allTasks,
     required this.currentLanguage,
-  });
+  }) : super(key: key);
 
   @override
-  State<TaskEditDialog> createState() => _TaskEditDialogState();
+  State<TaskEditScreen> createState() => _TaskEditScreenState();
 }
 
-class _TaskEditDialogState extends State<TaskEditDialog> {
+class _TaskEditScreenState extends State<TaskEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final GlobalKey _autocompleteKey = GlobalKey();
 
@@ -163,13 +163,19 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
       return DateFormat.yMd().add_jm().format(dt);
     }
 
-    return AlertDialog(
-      title: Text(widget.task == null ? texts['newTask']! : texts['editTask']!),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.task == null ? texts['newTask']! : texts['editTask']!),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
             children: <Widget>[
               TextFormField(
                 controller: _titleController,
@@ -212,11 +218,8 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                   });
                 },
                 optionsViewBuilder: (context, onSelected, options) {
-                  final RenderBox? fieldRenderBox =
-                      _autocompleteKey.currentContext?.findRenderObject()
-                          as RenderBox?;
+                  final RenderBox? fieldRenderBox = _autocompleteKey.currentContext?.findRenderObject() as RenderBox?;
                   final double fieldWidth = fieldRenderBox?.size.width ?? 300;
-
                   return Align(
                     alignment: Alignment.topLeft,
                     child: Material(
@@ -239,10 +242,8 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     ),
                   );
                 },
-                fieldViewBuilder: (context, fieldTextEditingController,
-                    fieldFocusNode, onFieldSubmitted) {
+                fieldViewBuilder: (context, fieldTextEditingController, fieldFocusNode, onFieldSubmitted) {
                   _parentController = fieldTextEditingController;
-
                   return TextFormField(
                     controller: fieldTextEditingController,
                     focusNode: fieldFocusNode,
@@ -275,8 +276,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                               ))
                           .toList(),
                       onChanged: (value) {
-                        if (value != null)
-                          setState(() => _selectedStatus = value);
+                        if (value != null) setState(() => _selectedStatus = value);
                       },
                     ),
                   ),
@@ -300,8 +300,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                               ))
                           .toList(),
                       onChanged: (value) {
-                        if (value != null)
-                          setState(() => _selectedColor = value);
+                        if (value != null) setState(() => _selectedColor = value);
                       },
                     ),
                   ),
@@ -326,8 +325,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                       label: Text(_selectedDueDate == null
                           ? texts['dueDate']!
                           : formatDateTime(_selectedDueDate)),
-                      onPressed: () =>
-                          _pickDateTime(context, isStartDate: false),
+                      onPressed: () => _pickDateTime(context, isStartDate: false),
                     ),
                   ),
                 ],
@@ -336,16 +334,26 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
           ),
         ),
       ),
-      actions: <Widget>[
-        TextButton(
-          child: Text(texts['cancel']!),
-          onPressed: () => Navigator.of(context).pop(),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                child: Text(texts['cancel']!),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton(
+                child: Text(texts['save']!),
+                onPressed: _saveForm,
+              ),
+            ),
+          ],
         ),
-        ElevatedButton(
-          child: Text(texts['save']!),
-          onPressed: _saveForm,
-        ),
-      ],
+      ),
     );
   }
 }

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:looninary/core/services/auth_service.dart';
-import 'package:looninary/features/auth/views/login_screen.dart';
-import 'package:looninary/features/home/views/home_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
-import 'register_screen.dart';
-import 'forgot_password_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
+
+import 'package:looninary/core/services/auth_service.dart';
 import 'package:looninary/core/utils/language_provider.dart';
+
+import 'package:looninary/features/auth/views/login_screen.dart';
+import 'package:looninary/features/auth/views/register_screen.dart';
+import 'package:looninary/features/auth/views/forgot_password_screen.dart';
+import 'package:looninary/features/home/views/home_page.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -19,21 +21,22 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   final AuthService _authService = AuthService();
 
-  // Thêm state để quản lý màn hình auth hiện tại
+  // Quản lý màn hình auth hiện tại: login / register / forgotPassword
   AuthScreen _currentScreen = AuthScreen.login;
 
   @override
   void initState() {
     super.initState();
-    _redirect();
+    _restoreSession();
   }
 
-  Future<void> _redirect() async {
+  Future<void> _restoreSession() async {
     if (!kIsWeb) {
       await _authService.restoreSession();
     }
   }
 
+  // Chuyển màn hình
   void _showLogin() {
     setState(() {
       _currentScreen = AuthScreen.login;
@@ -57,7 +60,6 @@ class _AuthGateState extends State<AuthGate> {
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        // While waiting for the first event, show a loading indicator
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -65,12 +67,11 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         final AuthState? authState = snapshot.data;
-        // If the user has a session, they are logged in
+        final lang = Provider.of<LanguageProvider>(context).language;
+
         if (authState != null && authState.session != null) {
-          final lang = Provider.of<LanguageProvider>(context).language;
           return HomePage(initialLanguage: lang);
         } else {
-          // Quản lý điều hướng auth tập trung tại đây
           switch (_currentScreen) {
             case AuthScreen.login:
               return LoginScreen(
@@ -92,4 +93,5 @@ class _AuthGateState extends State<AuthGate> {
   }
 }
 
+// Enum dùng để xác định màn hình auth hiện tại
 enum AuthScreen { login, register, forgotPassword }

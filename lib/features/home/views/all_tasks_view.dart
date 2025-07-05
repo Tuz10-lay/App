@@ -30,13 +30,16 @@ class AllTasksView extends StatelessWidget {
 
     return Consumer<TaskController>(
       builder: (context, controller, child) {
+        // Sửa showEditDialog để dùng push sang màn hình tạo/sửa task
         void showEditDialog({Task? task}) async {
-          final result = await showDialog<Map<String, dynamic>>(
-            context: context,
-            builder: (ctx) => TaskEditDialog(
-              task: task,
-              allTasks: controller.flatTasks,
-              currentLanguage: currentLanguage, // <-- thêm dòng này!
+          final result = await Navigator.push<Map<String, dynamic>>(
+            context,
+            MaterialPageRoute(
+              builder: (ctx) => TaskEditScreen(
+                task: task,
+                allTasks: controller.flatTasks,
+                currentLanguage: currentLanguage,
+              ),
             ),
           );
 

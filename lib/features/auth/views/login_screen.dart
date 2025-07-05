@@ -68,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isObscure = true;
-  AppLanguage _currentLanguage = AppLanguage.en;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -86,6 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider>(context);
+
+    // Luôn đồng bộ ngôn ngữ với Provider
+    final _currentLanguage = languageProvider.language == 'vi' ? AppLanguage.vi : AppLanguage.en;
 
     return Scaffold(
       body: Container(
@@ -117,17 +119,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           IconButton(
                             icon: const Icon(Icons.language, color: Colors.white),
                             onPressed: () {
-                              setState(() {
-                                _currentLanguage = _currentLanguage == AppLanguage.en
-                                    ? AppLanguage.vi
-                                    : AppLanguage.en;
-                              });
-                              // Cập nhật Provider
-                              languageProvider.setLanguage(_currentLanguage == AppLanguage.en ? 'en' : 'vi');
+                              final nextLang = _currentLanguage == AppLanguage.en ? 'vi' : 'en';
+                              languageProvider.setLanguage(nextLang);
+                              // Hiện thông báo chuyển ngôn ngữ
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    _currentLanguage == AppLanguage.en
+                                    nextLang == 'en'
                                         ? localizedText['languageSwitchedEn']![AppLanguage.en]!
                                         : localizedText['languageSwitchedVi']![AppLanguage.vi]!,
                                   ),

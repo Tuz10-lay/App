@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:looninary/features/home/controllers/task_controller.dart';
 import 'package:looninary/features/home/views/settings_screen.dart';
-import 'package:looninary/features/home/views/all_tasks_view.dart';
 import 'package:looninary/features/home/views/stats_view.dart';
-import 'package:provider/provider.dart';
+import 'package:looninary/features/home/views/all_tasks_view.dart';
+import 'package:looninary/core/utils/language_provider.dart';
 
 class HomePage extends StatefulWidget {
   final String initialLanguage;
   const HomePage({Key? key, this.initialLanguage = 'en'}) : super(key: key);
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -32,6 +35,8 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _currentLanguage = newLang;
     });
+    // Đồng bộ với Provider
+    Provider.of<LanguageProvider>(context, listen: false).setLanguage(newLang);
   }
 
   @override
@@ -95,4 +100,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-

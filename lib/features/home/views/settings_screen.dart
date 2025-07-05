@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:looninary/core/theme/theme_provider.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:looninary/core/utils/language_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:looninary/core/widgets/app_snack_bar.dart';
+import 'package:looninary/features/home/views/account_info_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final String currentLanguage;
@@ -26,48 +28,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showLanguagePicker(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(widget.currentLanguage == 'en' ? 'Select Language' : 'Chọn ngôn ngữ'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.language),
-                title: const Text('English'),
-                onTap: () {
-                  widget.onLanguageChanged('en');
-                  Navigator.pop(context);
-                  showAppSnackBar(
-                    context,
-                    'Language changed to English',
-                    SnackBarType.success,
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.language),
-                title: const Text('Tiếng Việt'),
-                onTap: () {
-                  widget.onLanguageChanged('vi');
-                  Navigator.pop(context);
-                  showAppSnackBar(
-                    context,
-                    'Đã chuyển sang Tiếng Việt',
-                    SnackBarType.success,
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+void _showLanguagePicker(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(widget.currentLanguage == 'en' ? 'Select Language' : 'Chọn ngôn ngữ'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('English'),
+              onTap: () {
+                // Đổi state hiện tại
+                widget.onLanguageChanged('en');
+                // Lưu xuống provider (và SharedPreferences)
+                Provider.of<LanguageProvider>(context, listen: false).setLanguage('en');
+                Navigator.pop(context);
+                showAppSnackBar(
+                  context,
+                  'Language changed to English',
+                  SnackBarType.success,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Tiếng Việt'),
+              onTap: () {
+                widget.onLanguageChanged('vi');
+                Provider.of<LanguageProvider>(context, listen: false).setLanguage('vi');
+                Navigator.pop(context);
+                showAppSnackBar(
+                  context,
+                  'Đã chuyển sang Tiếng Việt',
+                  SnackBarType.success,
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -151,16 +157,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _SettingsCard(
           children: [
             // Account Information
+   // Thay cho phần onTap của Account Information
             _SettingsTile(
               icon: Icons.person_outline,
               title: texts['accountInfo']!,
-              onTap: () {
-                showAppSnackBar(
+              onTap: () async {
+                await Navigator.push(
                   context,
-                  widget.currentLanguage == 'en'
-                      ? "Feature coming soon!"
-                      : "Tính năng sẽ sớm ra mắt!",
-                  SnackBarType.pending,
+                  MaterialPageRoute(
+                    builder: (_) => AccountInfoScreen(
+                      currentLanguage: widget.currentLanguage,
+                      onLanguageChanged: widget.onLanguageChanged,
+                    ),
+                  ),
                 );
               },
             ),
