@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:looninary/features/auth/controllers/auth_controller.dart';
 import 'package:looninary/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:looninary/core/utils/language_provider.dart';
 
 // --- Language enum & Text Map ---
 enum AppLanguage { en, vi }
@@ -43,7 +45,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final AuthController _authController = AuthController();
   final TextEditingController _emailController = TextEditingController();
-  AppLanguage _currentLanguage = AppLanguage.en;
 
   @override
   void dispose() {
@@ -53,6 +54,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider>(context);
+    final _currentLanguage = languageProvider.language == 'vi' ? AppLanguage.vi : AppLanguage.en;
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -82,15 +86,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           IconButton(
                             icon: const Icon(Icons.language, color: Colors.white),
                             onPressed: () {
-                              setState(() {
-                                _currentLanguage = _currentLanguage == AppLanguage.en
-                                    ? AppLanguage.vi
-                                    : AppLanguage.en;
-                              });
+                              final nextLang = _currentLanguage == AppLanguage.en ? 'vi' : 'en';
+                              languageProvider.setLanguage(nextLang);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    _currentLanguage == AppLanguage.en
+                                    nextLang == 'en'
                                         ? localizedText['languageSwitchedEn']![AppLanguage.en]!
                                         : localizedText['languageSwitchedVi']![AppLanguage.vi]!,
                                   ),
