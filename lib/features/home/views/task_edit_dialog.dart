@@ -88,7 +88,7 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
 
     final pickedDate = await showDatePicker(
       context: context,
-      locale: widget.currentLanguage == 'en' ? const Locale('en') : const Locale('vi'),
+      locale: Locale(widget.currentLanguage), // truyền ngôn ngữ hiện tại
       initialDate: initialDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
@@ -128,7 +128,7 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
       'title': widget.currentLanguage == 'en' ? 'Title' : 'Tiêu đề',
       'pleaseEnterTitle': widget.currentLanguage == 'en' ? 'Please enter a title' : 'Vui lòng nhập tiêu đề',
       'content': widget.currentLanguage == 'en' ? 'Content (optional)' : 'Nội dung (không bắt buộc)',
-      'parentTask': widget.currentLanguage == 'en' ? 'Parent Task (optional)' : 'Nhiệm vụ cha (không bắt buộc)',
+      'parentTask': widget.currentLanguage == 'en' ? 'Parent Task (optional)' : 'Nhiệm vụ chính (không bắt buộc)',
       'status': widget.currentLanguage == 'en' ? 'Status' : 'Trạng thái',
       'color': widget.currentLanguage == 'en' ? 'Color' : 'Màu sắc',
       'startDate': widget.currentLanguage == 'en' ? 'Start Date' : 'Ngày bắt đầu',
@@ -136,10 +136,10 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
       'cancel': widget.currentLanguage == 'en' ? 'Cancel' : 'Hủy',
       'save': widget.currentLanguage == 'en' ? 'Save' : 'Lưu',
       // Status values
-      'completed': 'Completed',
-      'inProgress': 'In Progress',
-      'notStarted': 'Not Started',
-      'blocked': 'Outdate',
+      'completed': widget.currentLanguage == 'en' ? 'Completed' : 'Hoàn thành',
+      'inProgress': widget.currentLanguage == 'en' ? 'In Progress' : 'Đang thực hiện',
+      'notStarted': widget.currentLanguage == 'en' ? 'Not Started' : 'Chưa bắt đầu',
+      'blocked': widget.currentLanguage == 'en' ? 'Outdate' : 'Quá hạn',
     };
 
     final statusTexts = {
@@ -149,13 +149,12 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
       TaskStatus.blocked: texts['blocked']!,
     };
 
-    // Always English for color
     final colorTexts = {
-      ItemColor.maroon: 'maroon',
-      ItemColor.peach: 'peach',
-      ItemColor.yellow: 'yellow',
-      ItemColor.green: 'green',
-      ItemColor.teal: 'teal',
+      ItemColor.maroon: widget.currentLanguage == 'en' ? 'maroon' : 'đỏ nâu',
+      ItemColor.peach: widget.currentLanguage == 'en' ? 'peach' : 'cam đào',
+      ItemColor.yellow: widget.currentLanguage == 'en' ? 'yellow' : 'vàng',
+      ItemColor.green: widget.currentLanguage == 'en' ? 'green' : 'xanh lá',
+      ItemColor.teal: widget.currentLanguage == 'en' ? 'teal' : 'xanh ngọc',
     };
 
     String formatDateTime(DateTime? dt) {
