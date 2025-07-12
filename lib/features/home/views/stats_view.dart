@@ -20,19 +20,84 @@ class Achievement {
 }
 
 class StatsView extends StatelessWidget {
-  const StatsView({super.key});
+  final String currentLanguage;
+  const StatsView({super.key, required this.currentLanguage});
 
-  static final List<Achievement> achievements = [
-    Achievement(name: 'Bronze', icon: Icons.shield_outlined, requiredTasks: 0, color: const Color(0xFFCD7F32)),
-    Achievement(name: 'Silver', icon: Icons.shield, requiredTasks: 10, color: const Color(0xFFC0C0C0)),
-    Achievement(name: 'Gold', icon: Icons.military_tech_outlined, requiredTasks: 25, color: const Color(0xFFFFD700)),
-    Achievement(name: 'Platinum', icon: Icons.military_tech, requiredTasks: 50, color: const Color(0xFFE5E4E2)),
-    Achievement(name: 'Diamond', icon: Icons.diamond_outlined, requiredTasks: 100, color: const Color(0xFFB9F2FF)),
-    Achievement(name: 'Master', icon: Icons.workspace_premium, requiredTasks: 250, color: const Color(0xFF9B30FF)),
+  static final List<Map<String, dynamic>> achievementsRaw = [
+    {
+      'en': 'Bronze',
+      'vi': 'Đồng',
+      'icon': Icons.shield_outlined,
+      'requiredTasks': 0,
+      'color': Color(0xFFCD7F32)
+    },
+    {
+      'en': 'Silver',
+      'vi': 'Bạc',
+      'icon': Icons.shield,
+      'requiredTasks': 10,
+      'color': Color(0xFFC0C0C0)
+    },
+    {
+      'en': 'Gold',
+      'vi': 'Vàng',
+      'icon': Icons.military_tech_outlined,
+      'requiredTasks': 25,
+      'color': Color(0xFFFFD700)
+    },
+    {
+      'en': 'Platinum',
+      'vi': 'Bạch kim',
+      'icon': Icons.military_tech,
+      'requiredTasks': 50,
+      'color': Color(0xFFE5E4E2)
+    },
+    {
+      'en': 'Diamond',
+      'vi': 'Kim cương',
+      'icon': Icons.diamond_outlined,
+      'requiredTasks': 100,
+      'color': Color(0xFFB9F2FF)
+    },
+    {
+      'en': 'Master',
+      'vi': 'Cao thủ',
+      'icon': Icons.workspace_premium,
+      'requiredTasks': 250,
+      'color': Color(0xFF9B30FF)
+    },
   ];
+
+  List<Achievement> _localizedAchievements(String lang) {
+    return achievementsRaw
+        .map((e) => Achievement(
+              name: e[lang],
+              icon: e['icon'],
+              requiredTasks: e['requiredTasks'],
+              color: e['color'],
+            ))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final texts = {
+      'welcome': currentLanguage == 'en' ? 'Welcome back,' : 'Chào mừng trở lại,',
+      'tasksCompleted': currentLanguage == 'en' ? 'Tasks Completed' : 'Nhiệm vụ đã hoàn thành',
+      'created': currentLanguage == 'en' ? 'Created' : 'Đã tạo',
+      'done': currentLanguage == 'en' ? 'Done' : 'Hoàn thành',
+      'left': currentLanguage == 'en' ? 'Left' : 'Còn lại',
+      'achievements': currentLanguage == 'en' ? 'Achievements' : 'Thành tích',
+      'tasks': currentLanguage == 'en' ? 'Tasks' : 'Nhiệm vụ',
+      'statusBreakdown': currentLanguage == 'en' ? 'Status Breakdown' : 'Phân loại trạng thái',
+      'completed': currentLanguage == 'en' ? 'Completed' : 'Hoàn thành',
+      'inProgress': currentLanguage == 'en' ? 'In Progress' : 'Đang thực hiện',
+      'notStarted': currentLanguage == 'en' ? 'Not Started' : 'Chưa bắt đầu',
+      'blocked': currentLanguage == 'en' ? 'Outdate' : 'Quá hạn',
+    };
+
+    final achievements = _localizedAchievements(currentLanguage);
+
     return Consumer<TaskController>(
       builder: (context, controller, child) {
         if (controller.isLoading && controller.flatTasks.isEmpty) {
@@ -52,15 +117,20 @@ class StatsView extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              _buildUserInfo(),
+              _buildUserInfo(texts),
               const SizedBox(height: 24),
               _buildOverallProgressCard(
                 completed: completedTasks,
                 left: tasksLeft,
                 total: totalTasks,
+                texts: texts,
               ),
               const SizedBox(height: 24),
-              _buildAchievementsSection(completedTasks: completedTasks),
+              _buildAchievementsSection(
+                completedTasks: completedTasks,
+                achievements: achievements,
+                texts: texts,
+              ),
               const SizedBox(height: 24),
               _buildStatusBreakdownCard(
                 total: totalTasks,
@@ -68,6 +138,7 @@ class StatsView extends StatelessWidget {
                 inProgress: inProgressTasks,
                 notStarted: notStartedTasks,
                 blocked: blockedTasks,
+                texts: texts,
               ),
             ],
           ),
@@ -76,7 +147,7 @@ class StatsView extends StatelessWidget {
     );
   }
 
-  Widget _buildUserInfo() {
+  Widget _buildUserInfo(Map<String, String> texts) {
     final user = Supabase.instance.client.auth.currentUser;
     final userEmail = user?.email ?? 'anonymous@user.com';
     return Builder(builder: (context) {
@@ -92,7 +163,7 @@ class StatsView extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Welcome back,', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              Text(texts['welcome']!, style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               Text(userEmail, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             ],
           ),
@@ -101,7 +172,7 @@ class StatsView extends StatelessWidget {
     });
   }
 
-  Widget _buildOverallProgressCard({required int completed, required int left, required int total}) {
+  Widget _buildOverallProgressCard({required int completed, required int left, required int total, required Map<String, String> texts}) {
     return Card(
       elevation: 4,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -110,14 +181,14 @@ class StatsView extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            _StatProgressIndicator(title: 'Tasks Completed', value: completed, total: total, height: 12, color: AppColors.green),
+            _StatProgressIndicator(title: texts['tasksCompleted']!, value: completed, total: total, height: 12, color: AppColors.green),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _StatCounter(count: total, label: 'Created'),
-                _StatCounter(count: completed, label: 'Done'),
-                _StatCounter(count: left, label: 'Left'),
+                _StatCounter(count: total, label: texts['created']!),
+                _StatCounter(count: completed, label: texts['done']!),
+                _StatCounter(count: left, label: texts['left']!),
               ],
             )
           ],
@@ -126,14 +197,21 @@ class StatsView extends StatelessWidget {
     );
   }
 
-  Widget _buildAchievementsSection({required int completedTasks}) {
+  Widget _buildAchievementsSection({
+    required int completedTasks,
+    required List<Achievement> achievements,
+    required Map<String, String> texts,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Builder(builder: (context) {
           return Text(
-            'Achievements',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            texts['achievements']!,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           );
         }),
         const SizedBox(height: 12),
@@ -150,14 +228,22 @@ class StatsView extends StatelessWidget {
           itemBuilder: (context, index) {
             final achievement = achievements[index];
             final isUnlocked = completedTasks >= achievement.requiredTasks;
-            return _AchievementCard(achievement: achievement, isUnlocked: isUnlocked);
+            return _AchievementCard(
+                achievement: achievement, isUnlocked: isUnlocked, texts: texts);
           },
         ),
       ],
     );
   }
 
-  Widget _buildStatusBreakdownCard({required int total, required int completed, required int inProgress, required int notStarted, required int blocked}) {
+  Widget _buildStatusBreakdownCard({
+    required int total,
+    required int completed,
+    required int inProgress,
+    required int notStarted,
+    required int blocked,
+    required Map<String, String> texts,
+  }) {
     return Builder(builder: (context) {
       final theme = Theme.of(context);
       return Card(
@@ -169,15 +255,35 @@ class StatsView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Status Breakdown', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                texts['statusBreakdown']!,
+                style: theme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
-              _StatProgressIndicator(title: 'Completed', value: completed, total: total, color: AppColors.green),
+              _StatProgressIndicator(
+                  title: texts['completed']!,
+                  value: completed,
+                  total: total,
+                  color: AppColors.green),
               const SizedBox(height: 16),
-              _StatProgressIndicator(title: 'In Progress', value: inProgress, total: total, color: AppColors.blue),
+              _StatProgressIndicator(
+                  title: texts['inProgress']!,
+                  value: inProgress,
+                  total: total,
+                  color: AppColors.blue),
               const SizedBox(height: 16),
-              _StatProgressIndicator(title: 'Not Started', value: notStarted, total: total, color: AppColors.mSubtext0),
+              _StatProgressIndicator(
+                  title: texts['notStarted']!,
+                  value: notStarted,
+                  total: total,
+                  color: AppColors.mSubtext0),
               const SizedBox(height: 16),
-              _StatProgressIndicator(title: 'Blocked', value: blocked, total: total, color: AppColors.maroon),
+              _StatProgressIndicator(
+                  title: texts['blocked']!,
+                  value: blocked,
+                  total: total,
+                  color: AppColors.maroon),
             ],
           ),
         ),
@@ -189,12 +295,15 @@ class StatsView extends StatelessWidget {
 class _AchievementCard extends StatelessWidget {
   final Achievement achievement;
   final bool isUnlocked;
-  const _AchievementCard({required this.achievement, required this.isUnlocked});
+  final Map<String, String> texts;
+  const _AchievementCard(
+      {required this.achievement, required this.isUnlocked, required this.texts});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = isUnlocked ? achievement.color : Colors.grey.shade700;
-    final textColor = isUnlocked ? theme.textTheme.bodyLarge?.color : Colors.grey.shade500;
+    final textColor =
+        isUnlocked ? theme.textTheme.bodyLarge?.color : Colors.grey.shade500;
     return Opacity(
       opacity: isUnlocked ? 1.0 : 0.5,
       child: Card(
@@ -211,15 +320,23 @@ class _AchievementCard extends StatelessWidget {
                   children: [
                     Icon(achievement.icon, size: 32, color: color),
                     const SizedBox(height: 8),
-                    Text(achievement.name, style: theme.textTheme.titleMedium?.copyWith(color: textColor, fontWeight: FontWeight.bold)),
+                    Text(achievement.name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                            color: textColor, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text('${achievement.requiredTasks} Tasks', style: theme.textTheme.bodySmall?.copyWith(color: textColor)),
+                    Text(
+                        "${achievement.requiredTasks} ${texts['tasks']}",
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: textColor)),
                   ],
                 ),
               ),
             ),
             Positioned(
-              left: 0, top: 0, bottom: 0, width: 6,
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 6,
               child: Container(color: color),
             ),
           ],
@@ -235,7 +352,12 @@ class _StatProgressIndicator extends StatelessWidget {
   final int total;
   final double height;
   final Color color;
-  const _StatProgressIndicator({required this.title, required this.value, required this.total, this.height = 8.0, this.color = Colors.blue});
+  const _StatProgressIndicator(
+      {required this.title,
+      required this.value,
+      required this.total,
+      this.height = 8.0,
+      this.color = Colors.blue});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -247,7 +369,9 @@ class _StatProgressIndicator extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title, style: theme.textTheme.bodyLarge),
-            Text('$value / $total', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text('$value / $total',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
         const SizedBox(height: 8),
@@ -272,8 +396,12 @@ class _StatCounter extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Text(count.toString(), style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        Text(count.toString(),
+            style: theme.textTheme.headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(label,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       ],
     );
   }

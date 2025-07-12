@@ -6,18 +6,56 @@ import 'package:looninary/features/home/views/task_edit_dialog.dart';
 import 'package:provider/provider.dart';
 
 class AllTasksView extends StatelessWidget {
-  const AllTasksView({super.key});
+  final String currentLanguage;
+  const AllTasksView({super.key, required this.currentLanguage});
 
   @override
   Widget build(BuildContext context) {
+    final texts = {
+      'addTask': currentLanguage == 'en' ? 'Add Task' : 'Thêm nhiệm vụ',
+      'searchTitle': currentLanguage == 'en' ? 'Search by Title' : 'Tìm theo tiêu đề',
+      'status': currentLanguage == 'en' ? 'Status' : 'Trạng thái',
+      'statusAll': currentLanguage == 'en' ? 'Status - All' : 'Tất cả trạng thái',
+      'color': currentLanguage == 'en' ? 'Color' : 'Màu sắc',
+      'colorAll': currentLanguage == 'en' ? 'Color - All' : 'Tất cả màu',
+      'filterByDate': currentLanguage == 'en' ? 'Filter by Date' : 'Lọc theo ngày',
+      'clearFilters': currentLanguage == 'en' ? 'Clear All Filters' : 'Xóa tất cả bộ lọc',
+      'noTasks': currentLanguage == 'en' ? 'No tasks found.' : 'Không có nhiệm vụ nào.',
+      'edit': currentLanguage == 'en' ? 'Edit' : 'Sửa',
+      'hibernate': currentLanguage == 'en' ? 'Hibernate' : 'Tạm ẩn',
+      'wakeUp': currentLanguage == 'en' ? 'Wake Up' : 'Đánh thức',
+      'delete': currentLanguage == 'en' ? 'Delete' : 'Xóa',
+      'completedPercent': currentLanguage == 'en' ? '% Complete' : '% Hoàn thành',
+    };
+
+    // Map trạng thái theo ngôn ngữ hiện tại
+    final statusTexts = {
+      TaskStatus.notStarted: currentLanguage == 'en' ? 'Not Started' : 'Chưa bắt đầu',
+      TaskStatus.inProgress: currentLanguage == 'en' ? 'In Progress' : 'Đang thực hiện',
+      TaskStatus.completed: currentLanguage == 'en' ? 'Completed' : 'Hoàn thành',
+      TaskStatus.blocked: currentLanguage == 'en' ? 'Outdate' : 'Quá hạn',
+    };
+
+    // Map màu theo ngôn ngữ hiện tại
+    final colorTexts = {
+      ItemColor.maroon: currentLanguage == 'en' ? 'maroon' : 'đỏ nâu',
+      ItemColor.peach: currentLanguage == 'en' ? 'peach' : 'cam đào',
+      ItemColor.yellow: currentLanguage == 'en' ? 'yellow' : 'vàng',
+      ItemColor.green: currentLanguage == 'en' ? 'green' : 'xanh lá',
+      ItemColor.teal: currentLanguage == 'en' ? 'teal' : 'xanh ngọc',
+    };
+
     return Consumer<TaskController>(
       builder: (context, controller, child) {
         void showEditDialog({Task? task}) async {
-          final result = await showDialog<Map<String, dynamic>>(
-            context: context,
-            builder: (ctx) => TaskEditDialog(
-              task: task,
-              allTasks: controller.flatTasks,
+          final result = await Navigator.push<Map<String, dynamic>>(
+            context,
+            MaterialPageRoute(
+              builder: (ctx) => TaskEditScreen(
+                task: task,
+                allTasks: controller.flatTasks,
+                currentLanguage: currentLanguage,
+              ),
             ),
           );
 
@@ -31,10 +69,18 @@ class AllTasksView extends StatelessWidget {
         }
 
         return Scaffold(
-          body: _buildBody(context, controller, showEditDialog),
+          body: _buildBody(
+            context,
+            controller,
+            showEditDialog,
+            texts,
+            statusTexts,
+            colorTexts,
+            currentLanguage
+          ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => showEditDialog(),
-            tooltip: 'Add Task',
+            tooltip: texts['addTask']!,
             child: const Icon(Icons.add),
           ),
         );
@@ -42,20 +88,32 @@ class AllTasksView extends StatelessWidget {
     );
   }
 
-  Future<void> _selectDate(BuildContext context, TaskController controller) async {
+  Future<void> _selectDate(
+    BuildContext context,
+    TaskController controller,
+    String currentLanguage,
+  ) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: controller.dateFilter ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      locale: Locale(currentLanguage),
     );
     if (picked != null && picked != controller.dateFilter) {
       controller.updateDateFilter(picked);
     }
   }
 
-  Widget _buildBody(BuildContext context, TaskController controller,
-      Function({Task? task}) showEditDialog) {
+  Widget _buildBody(
+    BuildContext context,
+    TaskController controller,
+    Function({Task? task}) showEditDialog,
+    Map<String, String> texts,
+    Map<TaskStatus, String> statusTexts,
+    Map<ItemColor, String> colorTexts,
+    String currentLanguage
+  ) {
     if (controller.isLoading && controller.flatTasks.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -69,9 +127,9 @@ class AllTasksView extends StatelessWidget {
           child: Column(
             children: [
               TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Search by Title',
-                  prefixIcon: Icon(Icons.search),
+                decoration: InputDecoration(
+                  labelText: texts['searchTitle']!,
+                  prefixIcon: const Icon(Icons.search),
                 ),
                 onChanged: (value) => controller.updateSearchQuery(value),
               ),
@@ -80,44 +138,44 @@ class AllTasksView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<TaskStatus?>(
-                      hint: const Text('Status'),
-                      decoration:
-                          const InputDecoration(border: OutlineInputBorder()),
+                      hint: Text(texts['status']!),
+                      decoration: const InputDecoration(border: OutlineInputBorder()),
                       items: [
-                        const DropdownMenuItem(
-                            value: null, child: Text('Status - All')),
+                        DropdownMenuItem(
+                          value: null,
+                          child: Text(texts['statusAll']!)
+                        ),
                         ...TaskStatus.values.map((status) => DropdownMenuItem(
-                              value: status,
-                              child: Text(status.toDbValue()),
-                            )),
+                          value: status,
+                          child: Text(statusTexts[status]!),
+                        )),
                       ],
-                      onChanged: (value) =>
-                          controller.updateStatusFilter(value),
+                      onChanged: (value) => controller.updateStatusFilter(value),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<ItemColor?>(
-                      hint: const Text('Color'),
-                      decoration:
-                          const InputDecoration(border: OutlineInputBorder()),
+                      hint: Text(texts['color']!),
+                      decoration: const InputDecoration(border: OutlineInputBorder()),
                       items: [
-                        const DropdownMenuItem(
-                            value: null, child: Text('Color - All')),
+                        DropdownMenuItem(
+                          value: null,
+                          child: Text(texts['colorAll']!)
+                        ),
                         ...ItemColor.values.map((color) => DropdownMenuItem(
-                              value: color,
-                              child: Row(
-                                children: [
-                                  Icon(Icons.circle,
-                                      color: color.toColor(context), size: 14),
-                                  const SizedBox(width: 8),
-                                  Text(color.name),
-                                ],
-                              ),
-                            )),
+                          value: color,
+                          child: Row(
+                            children: [
+                              Icon(Icons.circle,
+                                  color: color.toColor(context), size: 14),
+                              const SizedBox(width: 8),
+                              Text(colorTexts[color]!),
+                            ],
+                          ),
+                        )),
                       ],
-                      onChanged: (value) =>
-                          controller.updateColorFilter(value),
+                      onChanged: (value) => controller.updateColorFilter(value),
                     ),
                   ),
                 ],
@@ -130,19 +188,19 @@ class AllTasksView extends StatelessWidget {
                       icon: const Icon(Icons.calendar_today_outlined),
                       label: Text(
                         controller.dateFilter == null
-                            ? 'Filter by Date'
+                            ? texts['filterByDate']!
                             : DateFormat.yMMMd().format(controller.dateFilter!),
                         overflow: TextOverflow.ellipsis,
                       ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () => _selectDate(context, controller),
+                      onPressed: () => _selectDate(context, controller, currentLanguage),
                     ),
                   ),
                   const SizedBox(width: 12),
                   IconButton.filledTonal(
-                    tooltip: 'Clear All Filters',
+                    tooltip: texts['clearFilters']!,
                     onPressed: controller.clearFilters,
                     icon: const Icon(Icons.clear),
                   ),
@@ -153,7 +211,7 @@ class AllTasksView extends StatelessWidget {
         ),
         Expanded(
           child: tasksToDisplay.isEmpty
-              ? const Center(child: Text('No tasks found.'))
+              ? Center(child: Text(texts['noTasks']!))
               : ListView.builder(
                   padding: const EdgeInsets.only(bottom: 80.0),
                   itemCount: tasksToDisplay.length,
@@ -162,6 +220,7 @@ class AllTasksView extends StatelessWidget {
                     return _TaskNode(
                       task: task,
                       showEditDialog: showEditDialog,
+                      texts: texts,
                     );
                   },
                 ),
@@ -175,10 +234,12 @@ class _TaskNode extends StatelessWidget {
   final Task task;
   final Function({Task? task}) showEditDialog;
   final int level;
+  final Map<String, String> texts;
 
   const _TaskNode({
     required this.task,
     required this.showEditDialog,
+    required this.texts,
     this.level = 0,
   });
 
@@ -186,7 +247,6 @@ class _TaskNode extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Provider.of<TaskController>(context);
     final double indentation = level * 24.0;
-
     final bool isExpanded = controller.expandedTaskIds.contains(task.id);
 
     return Column(
@@ -198,12 +258,14 @@ class _TaskNode extends StatelessWidget {
             task: task,
             showEditDialog: showEditDialog,
             isExpanded: isExpanded,
+            texts: texts,
           ),
         ),
         if (task.children.isNotEmpty && isExpanded)
           ...task.children.map((child) => _TaskNode(
                 task: child,
                 showEditDialog: showEditDialog,
+                texts: texts,
                 level: level + 1,
               )),
       ],
@@ -215,11 +277,13 @@ class _TaskCard extends StatelessWidget {
   final Task task;
   final Function({Task? task}) showEditDialog;
   final bool isExpanded;
+  final Map<String, String> texts;
 
   const _TaskCard({
     required this.task,
     required this.showEditDialog,
     required this.isExpanded,
+    required this.texts,
   });
 
   Widget _getIconForStatus(TaskStatus status, Color iconColor) {
@@ -344,7 +408,7 @@ class _TaskCard extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${(progress * 100).toInt()}% Complete',
+                                    '${(progress * 100).toInt()}${texts['completedPercent']}',
                                     style: theme.textTheme.labelSmall,
                                   ),
                                   const SizedBox(height: 4),
@@ -388,18 +452,26 @@ class _TaskCard extends StatelessWidget {
                             }
                           },
                           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                            const PopupMenuItem<String>(
+                            PopupMenuItem<String>(
                               value: 'edit',
-                              child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Edit')]),
+                              child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text(texts['edit']!)]),
                             ),
                             PopupMenuItem<String>(
                               value: 'hibernate',
-                              child: Row(children: [Icon(task.isHibernated ? Icons.bedtime : Icons.bedtime_outlined, size: 20), const SizedBox(width: 8), Text(task.isHibernated ? 'Wake Up' : 'Hibernate')]),
+                              child: Row(children: [
+                                Icon(task.isHibernated ? Icons.bedtime : Icons.bedtime_outlined, size: 20),
+                                const SizedBox(width: 8),
+                                Text(task.isHibernated ? texts['wakeUp']! : texts['hibernate']!)
+                              ]),
                             ),
                             const PopupMenuDivider(),
                             PopupMenuItem<String>(
                               value: 'delete',
-                              child: Row(children: [Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error), const SizedBox(width: 8), Text('Delete', style: TextStyle(color: theme.colorScheme.error))]),
+                              child: Row(children: [
+                                Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
+                                const SizedBox(width: 8),
+                                Text(texts['delete']!, style: TextStyle(color: theme.colorScheme.error))
+                              ]),
                             ),
                           ],
                         ),

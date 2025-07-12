@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:looninary/core/models/task_model.dart';
 
-class TaskEditDialog extends StatefulWidget {
+class TaskEditScreen extends StatefulWidget {
   final Task? task;
   final List<Task>? allTasks;
+  final String currentLanguage;
 
-  const TaskEditDialog({
-    super.key,
+  const TaskEditScreen({
+    Key? key,
     this.task,
     this.allTasks,
-  });
+    required this.currentLanguage,
+  }) : super(key: key);
 
   @override
-  State<TaskEditDialog> createState() => _TaskEditDialogState();
+  State<TaskEditScreen> createState() => _TaskEditScreenState();
 }
 
-class _TaskEditDialogState extends State<TaskEditDialog> {
+class _TaskEditScreenState extends State<TaskEditScreen> {
   final _formKey = GlobalKey<FormState>();
-  // FIX: Key to measure the Autocomplete field's width
   final GlobalKey _autocompleteKey = GlobalKey();
 
   late TextEditingController _titleController;
@@ -87,6 +88,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
 
     final pickedDate = await showDatePicker(
       context: context,
+      locale: Locale(widget.currentLanguage), // truyền ngôn ngữ hiện tại
       initialDate: initialDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
@@ -120,25 +122,66 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final texts = {
+      'newTask': widget.currentLanguage == 'en' ? 'New Task' : 'Nhiệm vụ mới',
+      'editTask': widget.currentLanguage == 'en' ? 'Edit Task' : 'Chỉnh sửa nhiệm vụ',
+      'title': widget.currentLanguage == 'en' ? 'Title' : 'Tiêu đề',
+      'pleaseEnterTitle': widget.currentLanguage == 'en' ? 'Please enter a title' : 'Vui lòng nhập tiêu đề',
+      'content': widget.currentLanguage == 'en' ? 'Content (optional)' : 'Nội dung (không bắt buộc)',
+      'parentTask': widget.currentLanguage == 'en' ? 'Parent Task (optional)' : 'Nhiệm vụ chính (không bắt buộc)',
+      'status': widget.currentLanguage == 'en' ? 'Status' : 'Trạng thái',
+      'color': widget.currentLanguage == 'en' ? 'Color' : 'Màu sắc',
+      'startDate': widget.currentLanguage == 'en' ? 'Start Date' : 'Ngày bắt đầu',
+      'dueDate': widget.currentLanguage == 'en' ? 'Due Date' : 'Ngày hết hạn',
+      'cancel': widget.currentLanguage == 'en' ? 'Cancel' : 'Hủy',
+      'save': widget.currentLanguage == 'en' ? 'Save' : 'Lưu',
+      // Status values
+      'completed': widget.currentLanguage == 'en' ? 'Completed' : 'Hoàn thành',
+      'inProgress': widget.currentLanguage == 'en' ? 'In Progress' : 'Đang thực hiện',
+      'notStarted': widget.currentLanguage == 'en' ? 'Not Started' : 'Chưa bắt đầu',
+      'blocked': widget.currentLanguage == 'en' ? 'Outdate' : 'Quá hạn',
+    };
+
+    final statusTexts = {
+      TaskStatus.completed: texts['completed']!,
+      TaskStatus.inProgress: texts['inProgress']!,
+      TaskStatus.notStarted: texts['notStarted']!,
+      TaskStatus.blocked: texts['blocked']!,
+    };
+
+    final colorTexts = {
+      ItemColor.maroon: widget.currentLanguage == 'en' ? 'maroon' : 'đỏ nâu',
+      ItemColor.peach: widget.currentLanguage == 'en' ? 'peach' : 'cam đào',
+      ItemColor.yellow: widget.currentLanguage == 'en' ? 'yellow' : 'vàng',
+      ItemColor.green: widget.currentLanguage == 'en' ? 'green' : 'xanh lá',
+      ItemColor.teal: widget.currentLanguage == 'en' ? 'teal' : 'xanh ngọc',
+    };
+
     String formatDateTime(DateTime? dt) {
       if (dt == null) return '';
       return DateFormat.yMd().add_jm().format(dt);
     }
 
-    return AlertDialog(
-      title: Text(widget.task == null ? 'New Task' : 'Edit Task'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.task == null ? texts['newTask']! : texts['editTask']!),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
             children: <Widget>[
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: texts['title']),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
+                    return texts['pleaseEnterTitle'];
                   }
                   return null;
                 },
@@ -146,18 +189,16 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _contentController,
-                decoration:
-                    const InputDecoration(labelText: 'Content (optional)'),
+                decoration: InputDecoration(labelText: texts['content']),
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
               Autocomplete<Task>(
-                key: _autocompleteKey, // Assign key to the top-level widget
+                key: _autocompleteKey,
                 initialValue: TextEditingValue(text: _parentController.text),
                 displayStringForOption: (Task option) => option.title,
                 optionsBuilder: (TextEditingValue textEditingValue) {
                   if (textEditingValue.text == '') {
-                    // This is handled in fieldViewBuilder's clear button
                     return const Iterable<Task>.empty();
                   }
                   return widget.allTasks?.where((Task option) {
@@ -174,22 +215,16 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     _selectedParentId = selection.id;
                     _parentController.text = selection.title;
                   });
-                  // Also update the controller in fieldViewBuilder
-                  // This is handled by passing the controller
                 },
                 optionsViewBuilder: (context, onSelected, options) {
-                  // Find the RenderBox of the text field using its GlobalKey.
-                  final RenderBox? fieldRenderBox = _autocompleteKey
-                      .currentContext
-                      ?.findRenderObject() as RenderBox?;
+                  final RenderBox? fieldRenderBox = _autocompleteKey.currentContext?.findRenderObject() as RenderBox?;
                   final double fieldWidth = fieldRenderBox?.size.width ?? 300;
-
                   return Align(
                     alignment: Alignment.topLeft,
                     child: Material(
                       elevation: 4.0,
                       child: SizedBox(
-                        width: fieldWidth, // Apply the measured width
+                        width: fieldWidth,
                         child: ListView.builder(
                           padding: EdgeInsets.zero,
                           shrinkWrap: true,
@@ -206,16 +241,13 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     ),
                   );
                 },
-                fieldViewBuilder: (context, fieldTextEditingController,
-                    fieldFocusNode, onFieldSubmitted) {
-                  // Sync our state controller with the field's controller
+                fieldViewBuilder: (context, fieldTextEditingController, fieldFocusNode, onFieldSubmitted) {
                   _parentController = fieldTextEditingController;
-
                   return TextFormField(
                     controller: fieldTextEditingController,
                     focusNode: fieldFocusNode,
                     decoration: InputDecoration(
-                      labelText: 'Parent Task (optional)',
+                      labelText: texts['parentTask'],
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
@@ -235,16 +267,15 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                   Expanded(
                     child: DropdownButtonFormField<TaskStatus>(
                       value: _selectedStatus,
-                      decoration: const InputDecoration(labelText: 'Status'),
+                      decoration: InputDecoration(labelText: texts['status']),
                       items: TaskStatus.values
                           .map((status) => DropdownMenuItem(
                                 value: status,
-                                child: Text(status.toDbValue()),
+                                child: Text(statusTexts[status]!),
                               ))
                           .toList(),
                       onChanged: (value) {
-                        if (value != null)
-                          setState(() => _selectedStatus = value);
+                        if (value != null) setState(() => _selectedStatus = value);
                       },
                     ),
                   ),
@@ -252,7 +283,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                   Expanded(
                     child: DropdownButtonFormField<ItemColor>(
                       value: _selectedColor,
-                      decoration: const InputDecoration(labelText: 'Color'),
+                      decoration: InputDecoration(labelText: texts['color']),
                       items: ItemColor.values
                           .map((color) => DropdownMenuItem(
                                 value: color,
@@ -262,14 +293,13 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                                         color: color.toColor(context),
                                         size: 16),
                                     const SizedBox(width: 8),
-                                    Text(color.name),
+                                    Text(colorTexts[color]!),
                                   ],
                                 ),
                               ))
                           .toList(),
                       onChanged: (value) {
-                        if (value != null)
-                          setState(() => _selectedColor = value);
+                        if (value != null) setState(() => _selectedColor = value);
                       },
                     ),
                   ),
@@ -282,7 +312,7 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     child: TextButton.icon(
                       icon: const Icon(Icons.calendar_today),
                       label: Text(_selectedStartDate == null
-                          ? 'Start Date'
+                          ? texts['startDate']!
                           : formatDateTime(_selectedStartDate)),
                       onPressed: () => _pickDateTime(context, isStartDate: true),
                     ),
@@ -292,10 +322,9 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
                     child: TextButton.icon(
                       icon: const Icon(Icons.flag),
                       label: Text(_selectedDueDate == null
-                          ? 'Due Date'
+                          ? texts['dueDate']!
                           : formatDateTime(_selectedDueDate)),
-                      onPressed: () =>
-                          _pickDateTime(context, isStartDate: false),
+                      onPressed: () => _pickDateTime(context, isStartDate: false),
                     ),
                   ),
                 ],
@@ -304,16 +333,26 @@ class _TaskEditDialogState extends State<TaskEditDialog> {
           ),
         ),
       ),
-      actions: <Widget>[
-        TextButton(
-          child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                child: Text(texts['cancel']!),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton(
+                child: Text(texts['save']!),
+                onPressed: _saveForm,
+              ),
+            ),
+          ],
         ),
-        ElevatedButton(
-          child: const Text('Save'),
-          onPressed: _saveForm,
-        ),
-      ],
+      ),
     );
   }
 }
